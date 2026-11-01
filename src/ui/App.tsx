@@ -1,41 +1,31 @@
-import { useState } from 'react'
+import { useState, type ComponentType } from 'react'
 import AlphaLab from './AlphaLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
 import QuaternionLab from './QuaternionLab'
 import RasterCanvas from './RasterCanvas'
+import Shell from './shell/Shell'
 import SimplifyLab from './SimplifyLab'
 import TransformLab from './TransformLab'
 
-// One entry per tab. Later labs are added here.
-const TABS = [
-  { name: 'Rotating Cube', component: RasterCanvas },
-  { name: 'Bresenham Lab', component: BresenhamLab },
-  { name: 'Culling Lab', component: CullingLab },
-  { name: 'Alpha Lab', component: AlphaLab },
-  { name: 'Simplify Lab', component: SimplifyLab },
-  { name: 'Transforms Lab', component: TransformLab },
-  { name: 'Quaternion Lab', component: QuaternionLab },
+// One entry per lab: name and icon for the left list, and the component to show. Later labs are added here.
+const LABS: { id: string; name: string; icon: string; component: ComponentType }[] = [
+  { id: 'cube', name: 'Rotating Cube', icon: 'cube', component: RasterCanvas },
+  { id: 'bresenham', name: 'Bresenham Lab', icon: 'line', component: BresenhamLab },
+  { id: 'culling', name: 'Culling Lab', icon: 'cull', component: CullingLab },
+  { id: 'alpha', name: 'Alpha Lab', icon: 'layers', component: AlphaLab },
+  { id: 'simplify', name: 'Simplify Lab', icon: 'polyline', component: SimplifyLab },
+  { id: 'transforms', name: 'Transforms Lab', icon: 'transform', component: TransformLab },
+  { id: 'quaternion', name: 'Quaternion Lab', icon: 'rotate', component: QuaternionLab },
 ]
 
 export default function App() {
-  const [active, setActive] = useState(0)
-  const Active = TABS[active].component
+  const [activeId, setActiveId] = useState(LABS[0].id)
+  const Active = LABS.find((l) => l.id === activeId)!.component
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 16 }}>
-      <h1>RenderLab</h1>
-      <div style={{ marginBottom: 12 }}>
-        {TABS.map((t, i) => (
-          <button
-            key={t.name}
-            onClick={() => setActive(i)}
-            style={{ marginRight: 4, fontWeight: i === active ? 'bold' : 'normal' }}
-          >
-            {t.name}
-          </button>
-        ))}
-      </div>
-      <Active />
-    </div>
+    <Shell labs={LABS} activeId={activeId} onSelect={setActiveId}>
+      {/* key makes React start the lab fresh when you switch */}
+      <Active key={activeId} />
+    </Shell>
   )
 }

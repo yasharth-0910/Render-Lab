@@ -167,6 +167,7 @@ export default function Transform3D({ ops, setOps, modeSwitch }: Props) {
 
   return (
     <LabLayout
+      gizmo
       canvas={
         <canvas
           ref={canvasRef} width={WIDTH} height={HEIGHT}

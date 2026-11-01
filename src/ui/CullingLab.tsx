@@ -13,6 +13,12 @@ import { Framebuffer } from '../core/render/framebuffer'
 import { createCube, type Mesh } from '../core/render/mesh'
 import { createPlane, createUVSphere } from '../core/render/meshes'
 import { pickTriangle, renderMesh, type RenderOptions } from '../core/render/renderMesh'
+import FormulaBox from './components/FormulaBox'
+import LabLayout from './components/LabLayout'
+import NumberRow from './components/NumberRow'
+import Section from './components/Section'
+import { useLabLog } from './shell/console'
+import { usePausedRef } from './shell/ShellContext'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -50,6 +56,8 @@ export default function CullingLab() {
   const [stats, setStats] = useState<Stats>({ total: 0, visible: 0, culled: 0 })
   const [info, setInfo] = useState<TriangleInfo | null>(null)
 
+  const log = useLabLog()
+  const shellPausedRef = usePausedRef() // the top bar's Pause button also freezes the spin
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const meshes = useMemo(
     () => ({ cube: createCube(), sphere: createUVSphere(segments, Math.max(3, Math.floor(segments / 2))), plane: createPlane(4) }),
@@ -60,6 +68,18 @@ export default function CullingLab() {
   // from this ref instead of from React state directly.
   const live = useRef({ kind, meshes, cullingOn, colorByFacing, drawStyle, mode, showNormals, paused, selected })
   live.current = { kind, meshes, cullingOn, colorByFacing, drawStyle, mode, showNormals, paused, selected }
+
+  // Console trace: when a setting changes, report the counts a moment later (once the next frame has drawn).
+  const statsRef = useRef(stats)
+  statsRef.current = stats
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const st = statsRef.current
+      if (st.total === 0) return // the first frame has not been drawn yet
+      log(`Scene ${kind}: culling ${cullingOn ? 'ON' : 'OFF'} (${mode}-space test): ${st.total} triangles, ${st.visible} drawn, ${st.culled} culled (${st.total === 0 ? 0 : ((100 * st.culled) / st.total).toFixed(1)}%)`)
+    }, 250)
+    return () => clearTimeout(id)
+  }, [kind, segments, cullingOn, mode, stats.total === 0])
 
   // Orbit camera angles and the spin angle of the objects.
   const view = useRef({ yaw: 0.6, pitch: 0.4, spin: 0 })
@@ -128,7 +148,7 @@ export default function CullingLab() {
 
     function draw(now: number) {
       const s = live.current
-      if (!s.paused) view.current.spin += ((now - last) / 1000) * 0.8
+      if (!s.paused && !shellPausedRef.current) view.current.spin += ((now - last) / 1000) * 0.8
       last = now
 
       const camera = buildCamera(s.kind)
@@ -191,101 +211,84 @@ export default function CullingLab() {
       if (hit && (best === null || hit.depth < best.depth)) best = { obj: idx, tri: hit.triangle, depth: hit.depth }
     })
     setSelected(best ? { obj: (best as { obj: number }).obj, tri: (best as { tri: number }).tri } : null)
+    if (best) {
+      const hit = best as { obj: number; tri: number }
+      const objects = buildScene(s.kind, s.meshes, view.current.spin)
+      const d = describe(objects[hit.obj], hit.tri, camera)
+      log(`Selected triangle #${hit.tri}: n = ${v3(d.normal)}, area ${f(d.area)}`)
+      log(`  n · (a − eye) = ${f(d.dot)}  ->  ${d.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}; screen area ${d.signedArea2 === null ? 'n/a' : f(d.signedArea2)}`)
+    }
   }
 
   const percent = stats.total === 0 ? 0 : (100 * stats.culled) / stats.total
 
+  const checkbox = (label: string, checked: boolean, set: (v: boolean) => void) => (
+    <div><label><input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} /> {label}</label></div>
+  )
+
   return (
-    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <div>
+    <LabLayout
+      sections
+      gizmo
+      canvas={
         <canvas
           ref={canvasRef} width={WIDTH} height={HEIGHT}
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
-          style={{ display: 'block', cursor: 'grab', touchAction: 'none', border: '1px solid #999' }}
+          style={{ display: 'block', cursor: 'grab', touchAction: 'none' }}
         />
-        <small>Drag to orbit. Click a triangle to select it (yellow).</small>
-      </div>
-
-      <div style={{ minWidth: 330, maxWidth: 420 }}>
-        <div style={{ marginBottom: 8 }}>
-          <label>Scene{' '}
-            <select value={kind} onChange={(e) => setKind(e.target.value as SceneKind)}>
-              <option value="cube">Cube</option>
-              <option value="sphere">Sphere</option>
-              <option value="both">Cube + sphere on a plane</option>
-            </select>
-          </label>
-          {kind !== 'cube' && (
-            <div>
-              <label>Sphere segments{' '}
-                <input type="range" min={6} max={32} value={segments} onChange={(e) => setSegments(Number(e.target.value))} /> {segments}
-              </label>
+      }
+      overlay={`Triangles ${stats.total}\nVisible   ${stats.visible}\nCulled    ${stats.culled} (${percent.toFixed(1)}%)`}
+      stats={[`scene: ${kind}`, `${mode}-space test`, `culling ${cullingOn ? 'on' : 'off'}`, 'drag to orbit · click a triangle to select it (yellow)']}
+      controls={
+        <>
+          <Section title="Scene">
+            <div className="row">
+              <span className="row-label">Scene</span>
+              <select value={kind} onChange={(e) => setKind(e.target.value as SceneKind)} style={{ flex: 1 }}>
+                <option value="cube">Cube</option>
+                <option value="sphere">Sphere</option>
+                <option value="both">Cube + sphere on a plane</option>
+              </select>
             </div>
-          )}
-        </div>
-
-        <div>
-          <label><input type="checkbox" checked={cullingOn} onChange={(e) => setCullingOn(e.target.checked)} /> Back-face culling on</label>
-        </div>
-        <div>
-          <label><input type="checkbox" checked={colorByFacing} onChange={(e) => setColorByFacing(e.target.checked)} /> Colour by facing (front green, back red)</label>
-        </div>
-        <div>
-          <label><input type="checkbox" checked={showNormals} onChange={(e) => setShowNormals(e.target.checked)} /> Show normals (cyan)</label>
-        </div>
-        <div>
-          Draw style:{' '}
-          {(['wireframe', 'filled', 'both'] as const).map((s) => (
-            <label key={s} style={{ marginRight: 8 }}>
-              <input type="radio" name="style" checked={drawStyle === s} onChange={() => setDrawStyle(s)} /> {s}
-            </label>
-          ))}
-        </div>
-        <div>
-          Facing test:{' '}
-          <label style={{ marginRight: 8 }}><input type="radio" name="mode" checked={mode === 'view'} onChange={() => setMode('view')} /> view-space (dot product)</label>
-          <label><input type="radio" name="mode" checked={mode === 'screen'} onChange={() => setMode('screen')} /> screen-space (signed area)</label>
-        </div>
-        <div style={{ margin: '8px 0' }}>
-          <button onClick={() => setPaused(!paused)}>{paused ? 'Resume rotation' : 'Pause rotation'}</button>
-        </div>
-
-        <table style={{ fontFamily: 'monospace', fontSize: 14, marginBottom: 8 }}>
-          <tbody>
-            <tr><td>Total triangles</td><td>{stats.total}</td></tr>
-            <tr><td>Visible (drawn)</td><td>{stats.visible}</td></tr>
-            <tr><td>Culled (skipped)</td><td>{stats.culled}</td></tr>
-            <tr><td>Percent culled</td><td>{percent.toFixed(1)}%</td></tr>
-          </tbody>
-        </table>
-
-        <div style={{ fontFamily: 'monospace', fontSize: 12.5, background: '#f4f4f4', padding: 8 }}>
-          <div>n = (b − a) × (c − a)</div>
-          <div>back facing if n · (a − eye) ≥ 0</div>
-          <div>screen test: signed area &lt; 0 = front (pixel y points down)</div>
-          <hr />
+            {kind !== 'cube' && <NumberRow label="Segments" value={segments} min={6} max={32} onChange={setSegments} />}
+            <button onClick={() => setPaused(!paused)}>{paused ? 'Resume rotation' : 'Pause rotation'}</button>
+          </Section>
+          <Section title="Culling">
+            {checkbox('Back-face culling on', cullingOn, setCullingOn)}
+            <div style={{ marginTop: 6, color: 'var(--muted)' }}>Facing test</div>
+            <label style={{ display: 'block' }}><input type="radio" name="mode" checked={mode === 'view'} onChange={() => setMode('view')} /> view-space (dot product)</label>
+            <label style={{ display: 'block' }}><input type="radio" name="mode" checked={mode === 'screen'} onChange={() => setMode('screen')} /> screen-space (signed area)</label>
+          </Section>
+          <Section title="Display">
+            {checkbox('Colour by facing (front green, back red)', colorByFacing, setColorByFacing)}
+            {checkbox('Show normals (cyan)', showNormals, setShowNormals)}
+            <div style={{ marginTop: 6, color: 'var(--muted)' }}>Draw style</div>
+            {(['wireframe', 'filled', 'both'] as const).map((s) => (
+              <label key={s} style={{ marginRight: 10 }}>
+                <input type="radio" name="style" checked={drawStyle === s} onChange={() => setDrawStyle(s)} /> {s}
+              </label>
+            ))}
+          </Section>
+        </>
+      }
+      formula={
+        <FormulaBox>
+          {'n = (b − a) × (c − a)\nback facing if n · (a − eye) ≥ 0\nscreen test: signed area < 0 = front (pixel y points down)\n─────────────\n'}
           {info === null ? (
-            <div>Click a triangle on the canvas to see its numbers.</div>
+            'Click a triangle on the canvas to see its numbers.'
           ) : (
             <>
-              <div>a = {v3(info.a)}</div>
-              <div>b = {v3(info.b)}</div>
-              <div>c = {v3(info.c)}</div>
-              <div>eye = {v3(info.eye)}</div>
-              <div>n = {v3(info.normal)}</div>
-              <div>area = |n| / 2 = {f(info.area)}</div>
-              <div>a − eye = {v3(info.toTriangle)}</div>
-              <div>n · (a − eye) = {f(info.dot)}</div>
-              <div>view test: {info.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}</div>
-              <div>
-                screen signed area = {info.signedArea2 === null ? 'n/a (corner behind camera)' : f(info.signedArea2)}
-                {info.backScreen !== null && ` → ${info.backScreen ? 'BACK' : 'FRONT'}`}
-              </div>
-              <div><b>Result ({mode} test): {(mode === 'view' ? info.backView : info.backScreen ?? info.backView) ? 'BACK' : 'FRONT'}</b></div>
+              {`a = ${v3(info.a)}\nb = ${v3(info.b)}\nc = ${v3(info.c)}\neye = ${v3(info.eye)}\n`}
+              {`n = ${v3(info.normal)}\narea = |n| / 2 = ${f(info.area)}\n`}
+              {`a − eye = ${v3(info.toTriangle)}\nn · (a − eye) = ${f(info.dot)}\n`}
+              {`view test: ${info.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}\n`}
+              {`screen signed area = ${info.signedArea2 === null ? 'n/a (corner behind camera)' : f(info.signedArea2)}`}
+              {info.backScreen !== null && ` → ${info.backScreen ? 'BACK' : 'FRONT'}`}
+              {`\nResult (${mode} test): ${(mode === 'view' ? info.backView : info.backScreen ?? info.backView) ? 'BACK' : 'FRONT'}`}
             </>
           )}
-        </div>
-      </div>
-    </div>
+        </FormulaBox>
+      }
+    />
   )
 }

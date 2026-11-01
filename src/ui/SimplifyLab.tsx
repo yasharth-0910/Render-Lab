@@ -11,6 +11,7 @@ import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
 import { theme } from './components/theme'
+import { useLabLog } from './shell/console'
 
 const SIZE = 360 // each of the two canvases is SIZE x SIZE pixels
 const ORANGE = '#ff9f43' // RDP comparison
@@ -70,6 +71,7 @@ export default function SimplifyLab() {
   const [showRdp, setShowRdp] = useState(false)
   const [stepMode, setStepMode] = useState(false)
 
+  const log = useLabLog()
   const leftRef = useRef<HTMLCanvasElement>(null)
   const rightRef = useRef<HTMLCanvasElement>(null)
 
@@ -122,6 +124,20 @@ export default function SimplifyLab() {
     const positive = vw.steps.map((s) => s.area).filter((a) => a > 0)
     return { min: Math.min(...positive, Infinity), max: Math.max(...positive, 0) }
   }, [vw.steps])
+
+  // Console trace: the removal order once per shape, then the result a moment after the slider stops.
+  useEffect(() => {
+    log(`Visvalingam-Whyatt on ${n} points (${closed ? 'closed polygon' : 'open polyline'}): ${vw.steps.length} removal steps in ${vw.ms.toFixed(1)} ms`)
+    if (vw.steps.length > 0) log(`  first removals: ${vw.steps.slice(0, 4).map((s) => `#${s.index} (area ${fa(s.area)})`).join(', ')}`)
+  }, [points, closed])
+  useEffect(() => {
+    const id = setTimeout(() => {
+      log(`Keep ${keepCount} of ${n}: removed ${removeCount}, max distance ${f(quality.maxDist)}${closed ? `, area error ${quality.areaErrorPct.toFixed(2)}%` : ''}`)
+      const last = vw.steps[removeCount - 1]
+      if (stepMode && last) log(`  last removal: vertex #${last.index}, area ${fa(last.area)} (raw ${fa(last.rawArea)}), neighbours #${last.prev} and #${last.next}`)
+    }, 250)
+    return () => clearTimeout(id)
+  }, [keepCount, points, closed, stepMode])
 
   // Draw both canvases.
   useEffect(() => {
@@ -212,8 +228,8 @@ export default function SimplifyLab() {
 
   const side = (title: string, count: number, ref: React.RefObject<HTMLCanvasElement | null>, accent: boolean) => (
     <div>
-      <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1.1, color: accent ? theme.accent : theme.text }}>{count}</div>
-      <div style={{ color: theme.muted, fontSize: 12, letterSpacing: 1, marginBottom: 4 }}>{title} VERTICES</div>
+      <div className="compare-title">{title}</div>
+      <div className="compare-count" style={{ color: accent ? theme.accent : theme.text, marginBottom: 6 }}>{count.toLocaleString()}<small>VERTICES</small></div>
       <canvas ref={ref} width={SIZE} height={SIZE} style={{ background: theme.panel, border: `1px solid ${theme.border}`, borderRadius: 4 }} />
     </div>
   )
@@ -233,8 +249,8 @@ export default function SimplifyLab() {
     <LabLayout
       canvas={
         <div style={{ display: 'flex', gap: 12, lineHeight: 'normal' }}>
-          {side('ORIGINAL', n, leftRef, false)}
-          {side('SIMPLIFIED', keepCount, rightRef, true)}
+          {side('Original', n, leftRef, false)}
+          {side('Simplified', keepCount, rightRef, true)}
         </div>
       }
       stats={stats}

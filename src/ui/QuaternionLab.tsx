@@ -19,9 +19,11 @@ import { createAircraft } from '../core/render/meshes'
 import { renderWireframe } from '../core/render/render'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
-import { MatrixView, NumField } from './components/OpEditor'
+import { MatrixView } from './components/OpEditor'
+import Vec3Row from './components/Vec3Row'
 import NumberRow from './components/NumberRow'
 import { theme } from './components/theme'
+import { useShell } from './shell/ShellContext'
 
 const SIZE = 360
 const rad = (d: number) => (d * Math.PI) / 180
@@ -90,6 +92,7 @@ export default function QuaternionLab() {
   const [playing, setPlaying] = useState(false)
   const [vertex, setVertex] = useState(0)
 
+  const { paused: shellPaused } = useShell() // the top bar's Pause button stops Play
   const leftRef = useRef<HTMLCanvasElement>(null)
   const rightRef = useRef<HTMLCanvasElement>(null)
   const plotRef = useRef<HTMLCanvasElement>(null)
@@ -163,7 +166,7 @@ export default function QuaternionLab() {
 
   // ----- Play: t runs 0 -> 1 in 3 seconds, then starts over -----
   useEffect(() => {
-    if (!playing) return
+    if (!playing || shellPaused) return
     let frame = 0
     let last = performance.now()
     const tick = (now: number) => {
@@ -174,7 +177,7 @@ export default function QuaternionLab() {
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [playing])
+  }, [playing, shellPaused])
 
   // ----- text for the panel -----
   const matrix4 = toMat4(qShown)
@@ -240,6 +243,8 @@ export default function QuaternionLab() {
 
   return (
     <LabLayout
+      gizmo
+      zUp
       canvas={
         <div style={{ lineHeight: 'normal' }}>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -291,12 +296,7 @@ export default function QuaternionLab() {
                 <button style={button} onClick={() => { setYaw(30); setPitch(20); setRoll(0); setAxis([1, 0, 0]); setExtra(0) }}>Reset</button>
               </div>
               <div style={{ color: theme.muted, margin: '6px 0 2px' }}>Quaternion side: extra turn (axis-angle)</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ color: theme.muted }}>axis</span>
-                {[0, 1, 2].map((i) => (
-                  <NumField key={i} value={axis[i]} onChange={(n) => setAxis((a) => a.map((old, j) => (j === i ? n : old)) as unknown as Vec3)} />
-                ))}
-              </div>
+              <Vec3Row label="Axis" value={axis} onChange={setAxis} />
               <NumberRow label="Angle" value={extra} min={-180} max={180} onChange={setExtra} format={(n) => `${n}°`} />
             </>
           ) : (

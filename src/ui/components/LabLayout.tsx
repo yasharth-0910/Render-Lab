@@ -1,42 +1,56 @@
-// LabLayout.tsx - the one layout every lab uses (see "UI rules" in CLAUDE.md).
-//   left : the canvas (with an optional corner overlay) and a one-line stats strip below it
-//   right: a narrow panel with the lab's controls, and the formula box at the bottom
+// LabLayout.tsx - how a lab puts its content into the editor shell (see "UI rules" in CLAUDE.md).
+//   canvas / overlay / stats -> the centre VIEWPORT (stats strip along its bottom edge)
+//   controls / formula       -> the right INSPECTOR, as collapsible sections
+// The shell provides the two empty places; React portals draw the lab's content into them.
+// A lab only describes WHAT to show, never where, so it needs no shell code.
+
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { useShell } from '../shell/ShellContext'
+import AxisGizmo from './AxisGizmo'
+import Section from './Section'
 import StatsStrip from './StatsStrip'
-import { theme } from './theme'
 
 type Props = {
   canvas: ReactNode
-  overlay?: ReactNode // small text drawn in the top-left corner of the canvas
-  stats: string[] // the stats strip under the canvas
+  overlay?: ReactNode // small text in the top-left corner of the canvas
+  stats: string[] // the stats strip along the bottom of the viewport
   controls: ReactNode
-  formula?: ReactNode // goes at the bottom of the panel
+  formula?: ReactNode // goes at the bottom of the inspector
+  gizmo?: boolean // show the axis gizmo (3D labs)
+  zUp?: boolean // the gizmo's z axis points up (instead of y)
+  sections?: boolean // `controls` already contains its own <Section>s, so do not wrap it in one
 }
 
-export default function LabLayout({ canvas, overlay, stats, controls, formula }: Props) {
+export default function LabLayout({ canvas, overlay, stats, controls, formula, gizmo = false, zUp = false, sections = false }: Props) {
+  const { viewportEl, inspectorEl, labName } = useShell()
+  if (!viewportEl || !inspectorEl) return null
   return (
-    <div style={{
-      display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'stretch',
-      background: theme.bg, color: theme.text, font: theme.font, padding: 16, borderRadius: 8,
-    }}>
-      <div>
-        <div style={{ position: 'relative', lineHeight: 0 }}>
-          {canvas}
-          {overlay && (
-            <div style={{
-              position: 'absolute', top: 6, left: 8, font: theme.mono, lineHeight: 1.4,
-              color: '#fff', textShadow: '0 0 3px #000', pointerEvents: 'none', whiteSpace: 'pre',
-            }}>
-              {overlay}
+    <>
+      {createPortal(
+        <>
+          <div className="viewport-toolbar">
+            <span className="chip">{gizmo ? 'Perspective' : '2D view'}</span>
+            <span className="toolbar-lab">{labName}</span>
+          </div>
+          <div className="viewport-stage">
+            <div className="canvas-wrap">
+              {canvas}
+              {overlay && <div className="overlay">{overlay}</div>}
             </div>
-          )}
-        </div>
-        <StatsStrip items={stats} />
-      </div>
-      <div style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div>{controls}</div>
-        {formula && <div style={{ marginTop: 'auto' }}>{formula}</div>}
-      </div>
-    </div>
+          </div>
+          {gizmo && <AxisGizmo zUp={zUp} />}
+          <StatsStrip items={stats} />
+        </>,
+        viewportEl,
+      )}
+      {createPortal(
+        <>
+          {sections ? controls : <Section title="Controls">{controls}</Section>}
+          {formula && <Section title="Formula">{formula}</Section>}
+        </>,
+        inspectorEl,
+      )}
+    </>
   )
 }

@@ -17,6 +17,8 @@ import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
 import { theme } from './components/theme'
+import { useLabLog } from './shell/console'
+import { usePausedRef } from './shell/ShellContext'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -28,6 +30,8 @@ export default function AlphaScene3D({ modeSwitch }: { modeSwitch: React.ReactNo
   const [cullPanes, setCullPanes] = useState(false)
   const [readout, setReadout] = useState({ fps: 0, frameMs: 0, triangles: 0, blended: 0, blendMs: 0, panes: 2 })
 
+  const log = useLabLog()
+  const shellPausedRef = usePausedRef() // the top bar's Pause button freezes the spin
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const meshes = useMemo(() => ({ cube: createCube(), sphere: createUVSphere(16, 8), pane: createPlane(1.8) }), [])
 
@@ -50,7 +54,7 @@ export default function AlphaScene3D({ modeSwitch }: { modeSwitch: React.ReactNo
     function draw(now: number) {
       const t0 = performance.now()
       const s = live.current
-      view.current.spin += ((now - last) / 1000) * 0.6
+      if (!shellPausedRef.current) view.current.spin += ((now - last) / 1000) * 0.6
       last = now
       const { yaw, pitch, spin } = view.current
 
@@ -94,7 +98,12 @@ export default function AlphaScene3D({ modeSwitch }: { modeSwitch: React.ReactNo
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
-  }, [meshes])
+  }, [meshes, shellPausedRef])
+
+  // Console trace: what the see-through pass does with the current settings.
+  useEffect(() => {
+    log(`See-through pass: ${paneCount} pane(s), opacity ${opacity.toFixed(2)}, ${sortOn ? 'sorted back to front (correct blend order)' : 'NOT sorted: draw order = list order, blend order can be wrong'}`, sortOn ? 'trace' : 'warn')
+  }, [sortOn, paneCount, cullPanes]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Drag to orbit the camera.
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -116,6 +125,7 @@ export default function AlphaScene3D({ modeSwitch }: { modeSwitch: React.ReactNo
 
   return (
     <LabLayout
+      gizmo
       canvas={
         <canvas
           ref={canvasRef} width={WIDTH} height={HEIGHT}

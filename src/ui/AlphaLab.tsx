@@ -11,6 +11,7 @@ import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
 import { theme } from './components/theme'
+import { useLabLog } from './shell/console'
 
 const WIDTH = 640
 const HEIGHT = 480
@@ -70,6 +71,9 @@ function Layers2D({ modeSwitch }: { modeSwitch: React.ReactNode }) {
   const [picked, setPicked] = useState<{ x: number; y: number } | null>({ x: 315, y: 215 })
   const [stats, setStats] = useState({ blended: 0, ms: 0 })
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const log = useLabLog()
+  const statsRef = useRef(stats)
+  statsRef.current = stats
 
   // The stack at one pixel, bottom to top: the background layer, then every visible
   // layer whose circle covers the pixel. Returns the names too, for the explanation.
@@ -119,6 +123,25 @@ function Layers2D({ modeSwitch }: { modeSwitch: React.ReactNode }) {
       ctx.strokeRect(picked.x - 5, picked.y - 5, 11, 11)
     }
     setStats({ blended, ms: performance.now() - t0 })
+  }, [layers, bgColor, bgOpacity, picked])
+
+  // Console trace: a moment after the last change, report the blend and the picked pixel's steps.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const visible = layers.filter((l) => l.visible)
+      log(`Composite (bottom to top): ${['Background', ...visible.map((l) => l.name)].join(' < ')}; ${statsRef.current.blended.toLocaleString()} pixels blended in ${statsRef.current.ms.toFixed(1)} ms`)
+      if (picked) {
+        const { names, colors } = stackAt(picked.x, picked.y)
+        const base = checker(picked.x, picked.y)
+        const { steps, result } = compositeLayers(colors, base)
+        log(`Pixel (${picked.x},${picked.y}): checkerboard (${base[0]},${base[1]},${base[2]})`)
+        steps.forEach((s, i) => {
+          log(`  ${names[i]} over: a_out = ${n2(s.out[3])}, RGB (${s.dst.slice(0, 3).map(Math.round).join(',')}) -> (${s.out.slice(0, 3).map(Math.round).join(',')})`)
+        })
+        log(`  final RGB (${Math.round(result[0])},${Math.round(result[1])},${Math.round(result[2])}) alpha ${n2(result[3])}`)
+      }
+    }, 300)
+    return () => clearTimeout(id)
   }, [layers, bgColor, bgOpacity, picked])
 
   function update(id: number, change: Partial<Layer>) {

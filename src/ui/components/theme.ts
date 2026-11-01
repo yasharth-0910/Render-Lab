@@ -1,11 +1,39 @@
-// theme.ts - the few colours and sizes shared by every lab: dark neutral + ONE accent.
+// theme.ts - the colours and fonts shared by every lab. ONE source of truth:
+//  - labs read these values directly (canvas drawing needs real colour strings),
+//  - applyTheme() copies them into CSS variables so theme.css can use them too.
+// Charcoal palette, one glowing accent colour.
+
+const fontUi = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif'
+const fontMono = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace'
+
 export const theme = {
-  bg: '#1b1d22', // lab background
-  panel: '#15171b', // formula box / canvas surround
-  text: '#e6e6e6',
-  muted: '#9aa0aa',
-  border: '#3a3e47',
+  bg: '#14161b', // app background (the gaps between panels)
+  panel: '#1f232b', // panel surfaces; also the surround of canvases and the formula box
+  panelRaised: '#2a2f39', // buttons, headers, hovered rows
+  viewport: '#14161b', // the viewport and text inputs
+  border: '#353b47',
+  text: '#e4e6eb',
+  muted: '#8d939e',
   accent: '#4cc2ff', // the one accent colour
-  font: '14px system-ui, sans-serif',
-  mono: '12.5px ui-monospace, Menlo, monospace',
+  accentGlow: 'rgba(76, 194, 255, 0.35)',
+  fontUi,
+  fontMono,
+  font: `13px ${fontUi}`, // shorthand for the CSS `font:` property
+  mono: `12px ${fontMono}`, // shorthand; the first word is the size
 } as const
+
+/** Copy the theme into CSS variables on <html>. Call once at start-up. */
+export function applyTheme(): void {
+  const root = document.documentElement.style
+  root.setProperty('--bg', theme.bg)
+  root.setProperty('--panel', theme.panel)
+  root.setProperty('--panel-raised', theme.panelRaised)
+  root.setProperty('--viewport', theme.viewport)
+  root.setProperty('--border', theme.border)
+  root.setProperty('--text', theme.text)
+  root.setProperty('--muted', theme.muted)
+  root.setProperty('--accent', theme.accent)
+  root.setProperty('--accent-glow', theme.accentGlow)
+  root.setProperty('--font-ui', theme.fontUi)
+  root.setProperty('--font-mono', theme.fontMono)
+}

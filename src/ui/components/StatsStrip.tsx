@@ -1,10 +1,9 @@
-// StatsStrip.tsx - one line of small facts, shown under the canvas.
-import { theme } from './theme'
+// StatsStrip.tsx - one line of small facts, shown at the bottom of the viewport.
 
 export default function StatsStrip({ items }: { items: string[] }) {
   return (
-    <div style={{ marginTop: 6, color: theme.muted, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-      {items.join('  ·  ')}
+    <div className="stats-strip">
+      {items.map((item, i) => <span key={i}>{item}</span>)}
     </div>
   )
 }

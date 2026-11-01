@@ -1,8 +1,8 @@
 // OpEditor.tsx - an ordered list of operations the user can edit, used by the transforms lab
 // (2D and 3D). Each row has its own number boxes. Buttons add, remove and reorder rows.
-// Also contains NumField (a number box that allows typing "-" or "1." freely) and MatrixView.
+// Also contains MatrixView. (NumField, the number box, lives in NumField.tsx and is re-exported here.)
 
-import { useEffect, useState } from 'react'
+import NumField from './NumField'
 import { theme } from './theme'
 
 export type Field = { key: string; label: string; def: number; step?: number }
@@ -20,26 +20,7 @@ export function makeOp(type: string, spec: Spec, overrides: Record<string, numbe
   return { id: nextId++, type, v, axis }
 }
 
-// A number box that keeps its own text while you type (so "-" or "0." do not get erased),
-// and passes a number up as soon as the text is a valid number.
-export function NumField({ value, onChange, step = 0.1 }: { value: number; onChange: (v: number) => void; step?: number }) {
-  const [text, setText] = useState(String(value))
-  useEffect(() => {
-    if (Number(text) !== value) setText(String(value))
-  }, [value])
-  return (
-    <input
-      type="number" step={step} value={text}
-      onChange={(e) => {
-        setText(e.target.value)
-        const n = Number(e.target.value)
-        if (e.target.value !== '' && Number.isFinite(n)) onChange(n)
-      }}
-      onBlur={() => setText(String(value))}
-      style={{ width: 58, background: theme.panel, color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 3, padding: '1px 3px' }}
-    />
-  )
-}
+export { NumField }
 
 const smallButton = {
   background: 'none', color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 3, cursor: 'pointer', padding: '0 6px',

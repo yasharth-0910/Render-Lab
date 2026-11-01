@@ -10,7 +10,7 @@ One step per session. Do not start the next step on your own.
 - [x] 6. Visvalingam-Whyatt lab: polygon or coastline, slider for target vertex count, show triangle areas, original vs simplified side by side
 - [x] 7. Transforms lab: translate/rotate/scale/shear/reflect, rotation about arbitrary pivot, live matrix and determinant display
 - [x] 8. Quaternion lab: same rotation via Euler and quaternion, show gimbal lock, slerp animation
-- [ ] 8b. Engine skin: restyle the whole app to look like a game engine editor: top bar, left lab list, centre viewport, right inspector, bottom console
+- [x] 8b. Engine skin: restyle the whole app to look like a game engine editor: top bar, left lab list, centre viewport, right inspector, bottom console
 - [ ] 9. Scene editor + demo scene: cube, sphere, plane, select, properties panel, one low-poly city scene
 - [ ] 10. Benchmark panel: frame time, triangle counts, culling on/off, simplification before/after, export results as CSV
 - [ ] 11. Polish + report notes: UI polish, tab layout, README, notes for report
