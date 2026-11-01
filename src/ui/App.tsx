@@ -1,4 +1,10 @@
-// Placeholder page. Real labs arrive in later steps.
+import RasterCanvas from './RasterCanvas'
+
 export default function App() {
-  return <h1>RenderLab</h1>
+  return (
+    <div style={{ fontFamily: 'sans-serif', padding: 16 }}>
+      <h1>RenderLab</h1>
+      <RasterCanvas />
+    </div>
+  )
 }

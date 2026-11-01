@@ -3,7 +3,7 @@
 One step per session. Do not start the next step on your own.
 
 - [x] 1. Math lib: scaffold Vite app, vec3, mat4, quat in src/core/math with tests (dot, cross, outer product, multiply, determinant, inverse)
-- [ ] 2. Rasterizer + rotating cube: framebuffer, setPixel, canvas display, perspective projection, rotating wireframe cube
+- [x] 2. Rasterizer + rotating cube: framebuffer, setPixel, canvas display, perspective projection, rotating wireframe cube
 - [ ] 3. Bresenham lab: pick two points on a zoomable pixel grid, step through with error value shown, compare with canvas line
 - [ ] 4. Culling lab: normals via cross/outer product, signed-area test, front faces green, back faces red, toggle culling, triangle count before and after
 - [ ] 5. Alpha lab: layer sliders for color, opacity, order, show formula and blended RGB, composite over the 3D scene
