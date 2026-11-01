@@ -8,7 +8,7 @@ One step per session. Do not start the next step on your own.
 - [x] 4. Culling lab: normals via cross/outer product, signed-area test, front faces green, back faces red, toggle culling, triangle count before and after
 - [x] 5. Alpha lab: layer sliders for color, opacity, order, show formula and blended RGB, composite over the 3D scene
 - [x] 6. Visvalingam-Whyatt lab: polygon or coastline, slider for target vertex count, show triangle areas, original vs simplified side by side
-- [ ] 7. Transforms lab: translate/rotate/scale/shear/reflect, rotation about arbitrary pivot, live matrix and determinant display
+- [x] 7. Transforms lab: translate/rotate/scale/shear/reflect, rotation about arbitrary pivot, live matrix and determinant display
 - [ ] 8. Quaternion lab: same rotation via Euler and quaternion, show gimbal lock, slerp animation
 - [ ] 9. Scene editor + demo scene: cube, sphere, plane, select, properties panel, one low-poly city scene
 - [ ] 10. Benchmark panel: frame time, triangle counts, culling on/off, simplification before/after, export results as CSV
