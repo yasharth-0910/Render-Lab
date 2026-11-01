@@ -20,6 +20,15 @@ const paths: Record<string, string> = {
   pause: 'M5 3v10M11 3v10',
   play: 'M5 3l8 5-8 5z',
   trash: 'M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5',
+  stop: 'M4 4h8v8H4z',
+  close: 'M4 4l8 8M12 4l-8 8',
+  plus: 'M8 3v10M3 8h10',
+  maximize: 'M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4',
+  restore: 'M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4',
+  search: 'M7 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM11 11l3.5 3.5',
+  dots: 'M8 3v.01M8 8v.01M8 13v.01',
+  scene: 'M8 5.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6zM8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1',
+  node: 'M8 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z',
 }
 
 export function Icon({ name, size = 16 }: { name: string; size?: number }) {

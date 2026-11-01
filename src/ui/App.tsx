@@ -1,31 +1,60 @@
-import { useState, type ComponentType } from 'react'
+import type { ComponentType } from 'react'
 import AlphaLab from './AlphaLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
 import QuaternionLab from './QuaternionLab'
 import RasterCanvas from './RasterCanvas'
+import ReactorScene from './ReactorScene'
 import Shell from './shell/Shell'
+import type { LabEntry } from './shell/Sidebar'
 import SimplifyLab from './SimplifyLab'
 import TransformLab from './TransformLab'
 
-// One entry per lab: name and icon for the left list, and the component to show. Later labs are added here.
-const LABS: { id: string; name: string; icon: string; component: ComponentType }[] = [
-  { id: 'cube', name: 'Rotating Cube', icon: 'cube', component: RasterCanvas },
-  { id: 'bresenham', name: 'Bresenham Lab', icon: 'line', component: BresenhamLab },
-  { id: 'culling', name: 'Culling Lab', icon: 'cull', component: CullingLab },
-  { id: 'alpha', name: 'Alpha Lab', icon: 'layers', component: AlphaLab },
-  { id: 'simplify', name: 'Simplify Lab', icon: 'polyline', component: SimplifyLab },
-  { id: 'transforms', name: 'Transforms Lab', icon: 'transform', component: TransformLab },
-  { id: 'quaternion', name: 'Quaternion Lab', icon: 'rotate', component: QuaternionLab },
+// One entry per lab: what the tree shows, what the About dock says, and the component to run.
+// Later labs are added here.
+const LABS: (LabEntry & { component: ComponentType })[] = [
+  {
+    id: 'cube', name: 'Rotating Cube', icon: 'cube', dim: '3D', component: RasterCanvas,
+    topic: 'Software rasterizer, perspective',
+    blurb: 'The whole renderer in one picture: a cube is moved by the model, view and projection matrices, divided by w, and its edges are drawn pixel by pixel into our own pixel array.',
+  },
+  {
+    id: 'bresenham', name: 'Bresenham Lab', icon: 'line', dim: '2D', component: BresenhamLab,
+    topic: 'Bresenham line (required algorithm)',
+    blurb: 'Draws a line with whole numbers only. An error term decides at every step whether the next pixel is straight ahead or diagonal, so the pixel closest to the true line is always chosen.',
+  },
+  {
+    id: 'culling', name: 'Culling Lab', icon: 'cull', dim: '3D', component: CullingLab,
+    topic: 'Back-face culling (required algorithm)',
+    blurb: 'Skips triangles that face away from the camera. The normal comes from a cross product (the outer product); if it points away from the eye, the triangle is back facing and is not drawn.',
+  },
+  {
+    id: 'alpha', name: 'Alpha Lab', icon: 'layers', dim: 'both', component: AlphaLab,
+    topic: 'Alpha compositing (required algorithm)',
+    blurb: 'Blends see-through colours with the Porter-Duff "over" operator, one pixel at a time. In 3D the see-through triangles are sorted back to front, because the order of the blend matters.',
+  },
+  {
+    id: 'simplify', name: 'Simplify Lab', icon: 'polyline', dim: '2D', component: SimplifyLab,
+    topic: 'Visvalingam-Whyatt (required algorithm)',
+    blurb: 'Repeatedly removes the vertex whose triangle with its two neighbours has the smallest area, until few enough vertices remain. The area comes from the 2D cross (outer) product.',
+  },
+  {
+    id: 'transforms', name: 'Transforms Lab', icon: 'transform', dim: 'both', component: TransformLab,
+    topic: 'Transforms, determinants, pivots',
+    blurb: 'Build a transform from an ordered list of operations and watch the matrix and its determinant change: rotation and shear keep area, a reflection flips it, scaling multiplies it.',
+  },
+  {
+    id: 'quaternion', name: 'Quaternion Lab', icon: 'rotate', dim: '3D', component: QuaternionLab,
+    topic: 'Quaternions vs Euler angles',
+    blurb: 'The same rotation by Euler angles and by a quaternion. A pitch of 90 degrees locks the Euler angles (gimbal lock); slerp turns at constant speed where normalized lerp does not.',
+  },
+  {
+    id: 'reactor', name: 'Reactor Scene', icon: 'scene', dim: '3D', component: ReactorScene,
+    topic: 'Lighting, depth buffer, bloom',
+    blurb: 'A whole sci-fi hall drawn by our own rasterizer: lit triangles, a depth buffer, a neon grid, fog and a bloom glow. Orbit it, then save or copy the picture to share.',
+  },
 ]
 
 export default function App() {
-  const [activeId, setActiveId] = useState(LABS[0].id)
-  const Active = LABS.find((l) => l.id === activeId)!.component
-  return (
-    <Shell labs={LABS} activeId={activeId} onSelect={setActiveId}>
-      {/* key makes React start the lab fresh when you switch */}
-      <Active key={activeId} />
-    </Shell>
-  )
+  return <Shell labs={LABS} renderLab={(lab) => { const Lab = LABS.find((l) => l.id === lab.id)!.component; return <Lab /> }} />
 }

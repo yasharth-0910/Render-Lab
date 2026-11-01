@@ -2,7 +2,7 @@
 // Every triangle is wound counter-clockwise when seen from OUTSIDE, so its normal
 // (cross product of two edges) points outward.
 
-import type { Mesh } from './mesh'
+import { createCube, type Mesh } from './mesh'
 
 // Build the list of unique edges from the triangles, so wireframes have no repeats.
 function edgesFromTriangles(triangles: [number, number, number][]): [number, number][] {
@@ -99,4 +99,73 @@ export function createAircraft(): Mesh {
       [9, 8], [8, 1], // fin
     ],
   }
+}
+
+/** A box of the given width (x), height (y) and depth (z), centred on the origin. */
+export function createBox(width: number, height: number, depth: number): Mesh {
+  const cube = createCube() // corners at +-0.5, outward counter-clockwise triangles
+  return {
+    vertices: cube.vertices.map((v) => [v[0] * width, v[1] * height, v[2] * depth] as const),
+    triangles: cube.triangles.map((t) => [...t] as [number, number, number]),
+    edges: cube.edges.map((e) => [...e] as [number, number]),
+  }
+}
+
+/**
+ * A closed cylinder standing along y, centred on the origin (y from -height/2 to +height/2).
+ * Vertices: the bottom ring, the top ring, then the bottom centre and the top centre.
+ */
+export function createCylinder(radius: number, height: number, segments: number): Mesh {
+  const half = height / 2
+  const vertices: Mesh['vertices'] = []
+  for (const y of [-half, half]) {
+    for (let s = 0; s < segments; s++) {
+      const angle = (2 * Math.PI * s) / segments
+      vertices.push([radius * Math.cos(angle), y, radius * Math.sin(angle)])
+    }
+  }
+  const bottomCentre = vertices.length
+  vertices.push([0, -half, 0])
+  const topCentre = vertices.length
+  vertices.push([0, half, 0])
+
+  const triangles: [number, number, number][] = []
+  for (let s = 0; s < segments; s++) {
+    const next = (s + 1) % segments
+    const bottom = s // ring indices: bottom ring 0..n-1, top ring n..2n-1
+    const bottomNext = next
+    const top = segments + s
+    const topNext = segments + next
+    // The side: one quad per segment, two triangles, counter-clockwise seen from outside.
+    triangles.push([top, topNext, bottom], [topNext, bottomNext, bottom])
+    triangles.push([topCentre, topNext, top]) // top cap, facing up
+    triangles.push([bottom, bottomNext, bottomCentre]) // bottom cap, facing down
+  }
+  return { vertices, triangles, edges: edgesFromTriangles(triangles) }
+}
+
+/**
+ * A flat floor on y = 0 facing up, `size` wide and deep, cut into divisions x divisions squares.
+ * Many small squares (instead of one big one) so lights can shade the floor differently from place to place.
+ */
+export function createGround(size: number, divisions: number): Mesh {
+  const half = size / 2
+  const vertices: Mesh['vertices'] = []
+  for (let i = 0; i <= divisions; i++) {
+    for (let j = 0; j <= divisions; j++) {
+      vertices.push([-half + (size * j) / divisions, 0, -half + (size * i) / divisions])
+    }
+  }
+  const at = (i: number, j: number) => i * (divisions + 1) + j
+  const triangles: [number, number, number][] = []
+  for (let i = 0; i < divisions; i++) {
+    for (let j = 0; j < divisions; j++) {
+      const a = at(i, j) // x-, z-
+      const b = at(i, j + 1) // x+, z-
+      const c = at(i + 1, j + 1) // x+, z+
+      const d = at(i + 1, j) // x-, z+
+      triangles.push([a, d, c], [a, c, b])
+    }
+  }
+  return { vertices, triangles, edges: edgesFromTriangles(triangles) }
 }

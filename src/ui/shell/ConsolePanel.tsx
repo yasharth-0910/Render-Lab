@@ -1,4 +1,4 @@
-// ConsolePanel.tsx - the bottom console: the algorithm trace of the open lab. Collapsible.
+// ConsolePanel.tsx - the bottom dock (Godot's Output): the algorithm trace of the open lab.
 
 import { useEffect, useRef } from 'react'
 import { labConsole, useConsoleLines } from './console'
@@ -16,17 +16,17 @@ export default function ConsolePanel({ labName, open, onToggle }: Props) {
     if (body) body.scrollTop = body.scrollHeight
   }, [lines, open])
 
+  const hasWarning = lines.some((l) => l.level === 'warn')
   return (
-    <section className={`console${open ? '' : ' is-collapsed'}`}>
-      <div className="panel-header console-header">
-        <button className="console-toggle" onClick={onToggle}>
-          <Icon name={open ? 'chevronDown' : 'chevronRight'} size={12} />
-          <span>Console</span>
-          <span className="count">{lines.length}</span>
+    <section className={`bottom-dock${open ? '' : ' is-collapsed'}`}>
+      <div className="dock-tabs">
+        <button className="tab active tab-button" onClick={onToggle} title={open ? 'Collapse' : 'Expand'}>
+          <span className={`dot${hasWarning ? ' warn' : ''}`} />Output <span className="count">{lines.length}</span>
         </button>
         <button className="icon-button" onClick={() => labConsole.clear(labName)} title="Clear" disabled={lines.length === 0}>
           <Icon name="trash" size={13} />
         </button>
+        <span className="dock-version">RenderLab 0.1 · CPU rasterizer</span>
       </div>
       {open && (
         <div className="console-body" ref={bodyRef}>

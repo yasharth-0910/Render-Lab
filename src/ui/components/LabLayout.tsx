@@ -6,6 +6,7 @@
 
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { Icon } from '../shell/icons'
 import { useShell } from '../shell/ShellContext'
 import AxisGizmo from './AxisGizmo'
 import Section from './Section'
@@ -23,15 +24,14 @@ type Props = {
 }
 
 export default function LabLayout({ canvas, overlay, stats, controls, formula, gizmo = false, zUp = false, sections = false }: Props) {
-  const { viewportEl, inspectorEl, labName } = useShell()
-  if (!viewportEl || !inspectorEl) return null
+  const { viewportEl, inspectorEl } = useShell()
+  if (!viewportEl) return null
   return (
     <>
       {createPortal(
         <>
           <div className="viewport-toolbar">
-            <span className="chip">{gizmo ? 'Perspective' : '2D view'}</span>
-            <span className="toolbar-lab">{labName}</span>
+            <span className="view-label"><Icon name="dots" size={12} />{gizmo ? 'Perspective' : 'Orthographic 2D'}</span>
           </div>
           <div className="viewport-stage">
             <div className="canvas-wrap">
@@ -44,7 +44,7 @@ export default function LabLayout({ canvas, overlay, stats, controls, formula, g
         </>,
         viewportEl,
       )}
-      {createPortal(
+      {inspectorEl && createPortal(
         <>
           {sections ? controls : <Section title="Controls">{controls}</Section>}
           {formula && <Section title="Formula">{formula}</Section>}
