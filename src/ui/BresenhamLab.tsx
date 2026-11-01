@@ -6,6 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { bresenhamSteps } from '../core/render/line'
 import { ddaSteps } from '../core/render/dda'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -77,13 +78,13 @@ export default function BresenhamLab() {
     const dy = Math.abs(b.y - a.y)
     const major = Math.max(dx, dy)
     const minor = Math.min(dx, dy)
-    log(`Line A(${a.x},${a.y}) -> B(${b.x},${b.y}): dx=${dx} dy=${dy}, major axis ${dy > dx ? 'y' : 'x'}, ${steps.length} pixels`)
-    log(`  initial error e0 = 2*minor - major = 2*${minor} - ${major} = ${2 * minor - major}`)
+    log(`Line A (${a.x}, ${a.y}) → B (${b.x}, ${b.y}): dx = ${dx}, dy = ${dy}, major axis ${dy > dx ? 'y' : 'x'}, ${steps.length} pixels`)
+    log(`  start: \`e_0 = 2·minor − major = 2·${minor} − ${major} = ${2 * minor - major}\``)
   }, [a, b])
   useEffect(() => {
     if (shown === 0) return
     const s = steps[shown - 1]
-    log(`step ${shown}: pixel (${s.x},${s.y})  error ${s.errorBefore} -> ${s.errorAfter}  ${s.move === 'none' ? 'end of line' : s.move}`)
+    log(`step ${shown}: pixel (${s.x}, ${s.y})   \`e = ${s.errorBefore}\` → \`e = ${s.errorAfter}\`   ${s.move === 'none' ? 'end of the line' : s.move + ' move'}`)
   }, [shown])
   const ddaDiffs = dda.length === 0 ? 0 : steps.filter((st) => !dda.some((p) => p.x === st.x && p.y === st.y)).length
   useEffect(() => {
@@ -225,13 +226,20 @@ export default function BresenhamLab() {
       }
       formula={
         <FormulaBox>
-          {`dx = |${b.x} − ${a.x}| = ${dx}, dy = |${b.y} − ${a.y}| = ${dy}\n`}
-          {`major axis = ${dy > dx ? 'y' : 'x'} (${major} moves), minor axis = ${dy > dx ? 'x' : 'y'} (${minor})\n`}
-          {`Start: error = 2·minor − major = 2·${minor} − ${major} = ${e0}\n`}
-          {`Rule at each pixel:\n`}
-          {`  error > 0 → diagonal move, error += 2·(minor − major) = ${2 * (minor - major)}\n`}
-          {`  error ≤ 0 → straight move, error += 2·minor = ${2 * minor}\n`}
-          {`  (a tie, error = 0, goes to the larger minor coordinate)`}
+          <Eq label="Start">{'e_0 = 2·minor − major'}</Eq>
+          <Eq label="If e is positive: diagonal move">{'e ← e + 2(minor − major)'}</Eq>
+          <Eq label="If e is zero or negative: straight move">{'e ← e + 2·minor'}</Eq>
+          <Numbers
+            title="This line"
+            lines={[
+              `dx = |${b.x} − ${a.x}| = ${dx},  dy = |${b.y} − ${a.y}| = ${dy}`,
+              `major axis ${dy > dx ? 'y' : 'x'} (${major} moves), minor axis ${dy > dx ? 'x' : 'y'} (${minor})`,
+              `e0 = 2·${minor} − ${major} = ${e0}`,
+              `diagonal move: e += ${2 * (minor - major)}`,
+              `straight move: e += ${2 * minor}`,
+            ]}
+          />
+          <Note>When e is exactly 0 the line is half way between two pixels, and the pixel with the larger minor coordinate is chosen.</Note>
         </FormulaBox>
       }
     />

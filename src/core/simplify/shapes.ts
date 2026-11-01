@@ -46,12 +46,15 @@ function fractal(lattice: number[], t: number, octaves: number, persistence: num
   return sum / total
 }
 
-/** A wiggly coastline: an open polyline of 500 points running left to right. */
-export function createCoastline(): Shape {
+/**
+ * A wiggly coastline: an open polyline running left to right, 500 points by default.
+ * A bigger or smaller `count` gives the same curve (same seed) sampled more or less finely.
+ */
+export function createCoastline(count = 500): Shape {
   const lattice = makeLattice(1)
   const points: Pt[] = []
-  for (let i = 0; i < 500; i++) {
-    const x = (i / 499) * 10
+  for (let i = 0; i < count; i++) {
+    const x = (i / (count - 1)) * 10
     // period 200 is longer than the line, so the pattern never repeats along it
     points.push([x, 3 * fractal(lattice, x * 0.5, 6, 0.55, 200)])
   }

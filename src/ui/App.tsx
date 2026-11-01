@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import AlphaLab from './AlphaLab'
+import BenchmarkLab from './BenchmarkLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
 import QuaternionLab from './QuaternionLab'
@@ -53,6 +54,11 @@ const LABS: (LabEntry & { component: ComponentType })[] = [
     id: 'reactor', name: 'Reactor Scene', icon: 'scene', dim: '3D', component: ReactorScene,
     topic: 'Scene editor: picking, culling, depth buffer, bloom',
     blurb: 'The demo scene, and a small scene editor around it. Click an object (in the picture or in the tree) to select it, move, turn, resize and recolour it, add or delete objects, and switch back-face culling and wireframe to see what they do to the triangle counts.',
+  },
+  {
+    id: 'benchmark', name: 'Benchmark', icon: 'bench', dim: 'both', component: BenchmarkLab,
+    topic: 'Experimental results',
+    blurb: 'Times the project\'s own algorithms with real code: culling off vs on, Bresenham vs DDA, alpha blending, Visvalingam-Whyatt growth, and matrix vs quaternion maths. Export the numbers as CSV or markdown for the report.',
   },
 ]
 

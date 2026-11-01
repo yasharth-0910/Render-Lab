@@ -13,6 +13,7 @@ import { Framebuffer } from '../core/render/framebuffer'
 import { createCube, type Mesh } from '../core/render/mesh'
 import { createPlane, createUVSphere } from '../core/render/meshes'
 import { pickTriangle, renderMesh, type RenderOptions } from '../core/render/renderMesh'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -215,8 +216,8 @@ export default function CullingLab() {
       const hit = best as { obj: number; tri: number }
       const objects = buildScene(s.kind, s.meshes, view.current.spin)
       const d = describe(objects[hit.obj], hit.tri, camera)
-      log(`Selected triangle #${hit.tri}: n = ${v3(d.normal)}, area ${f(d.area)}`)
-      log(`  n · (a − eye) = ${f(d.dot)}  ->  ${d.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}; screen area ${d.signedArea2 === null ? 'n/a' : f(d.signedArea2)}`)
+      log(`Selected triangle #${hit.tri}: \`n = (b − a) × (c − a)\` = ${v3(d.normal)}, area ${f(d.area)}`)
+      log(`  \`n · (a − eye) = ${f(d.dot)}\` → ${d.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}; screen test \`2A = ${d.signedArea2 === null ? 'n/a' : f(d.signedArea2)}\``)
     }
   }
 
@@ -273,19 +274,24 @@ export default function CullingLab() {
       }
       formula={
         <FormulaBox>
-          {'n = (b − a) × (c − a)\nback facing if n · (a − eye) ≥ 0\nscreen test: signed area < 0 = front (pixel y points down)\n─────────────\n'}
+          <Eq label="Normal (cross product)">{'n = (b − a) × (c − a)'}</Eq>
+          <Eq label="View-space test">{'back facing if   n · (a − eye) ≥ 0'}</Eq>
+          <Eq label="Screen-space test">{'2A = (x_1 − x_0)(y_2 − y_0) − (y_1 − y_0)(x_2 − x_0)'}</Eq>
+          <Note>On screen y points down, so A &lt; 0 means front facing.</Note>
           {info === null ? (
-            'Click a triangle on the canvas to see its numbers.'
+            <Note>Click a triangle on the canvas to see its numbers.</Note>
           ) : (
-            <>
-              {`a = ${v3(info.a)}\nb = ${v3(info.b)}\nc = ${v3(info.c)}\neye = ${v3(info.eye)}\n`}
-              {`n = ${v3(info.normal)}\narea = |n| / 2 = ${f(info.area)}\n`}
-              {`a − eye = ${v3(info.toTriangle)}\nn · (a − eye) = ${f(info.dot)}\n`}
-              {`view test: ${info.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}\n`}
-              {`screen signed area = ${info.signedArea2 === null ? 'n/a (corner behind camera)' : f(info.signedArea2)}`}
-              {info.backScreen !== null && ` → ${info.backScreen ? 'BACK' : 'FRONT'}`}
-              {`\nResult (${mode} test): ${(mode === 'view' ? info.backView : info.backScreen ?? info.backView) ? 'BACK' : 'FRONT'}`}
-            </>
+            <Numbers
+              title="Selected triangle"
+              lines={[
+                `a = ${v3(info.a)}`, `b = ${v3(info.b)}`, `c = ${v3(info.c)}`, `eye = ${v3(info.eye)}`,
+                `n = ${v3(info.normal)},  area = |n| / 2 = ${f(info.area)}`,
+                `a − eye = ${v3(info.toTriangle)}`,
+                `n · (a − eye) = ${f(info.dot)}   → ${info.backView ? 'BACK facing (culled)' : 'FRONT facing (visible)'}`,
+                `signed area 2A = ${info.signedArea2 === null ? 'n/a (a corner is behind the camera)' : f(info.signedArea2)}${info.backScreen !== null ? `   → ${info.backScreen ? 'BACK' : 'FRONT'}` : ''}`,
+                `result (${mode} test): ${(mode === 'view' ? info.backView : info.backScreen ?? info.backView) ? 'BACK' : 'FRONT'}`,
+              ]}
+            />
           )}
         </FormulaBox>
       }

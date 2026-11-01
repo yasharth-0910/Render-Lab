@@ -11,6 +11,7 @@ import { Framebuffer } from '../core/render/framebuffer'
 import { drawLine } from '../core/render/line'
 import { createCube } from '../core/render/mesh'
 import { renderWireframe } from '../core/render/render'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import OpEditor, { makeOp, MatrixView, type Spec, type UiOp } from './components/OpEditor'
@@ -156,11 +157,20 @@ export default function Transform3D({ ops, setOps, modeSwitch }: Props) {
   const [x2, y2, z2] = transformPoint(m, cube.vertices[vertex])
   const formula = (
     <FormulaBox>
-      {`p' = M p     (p = [x, y, z, 1])\n\n`}
-      {`vertex ${vertex}: p = (${f(x)}, ${f(y)}, ${f(z)}, 1)\n\n`}
-      {`x' = ${f(m[0])}·${f(x)} + ${f(m[1])}·${f(y)} + ${f(m[2])}·${f(z)} + ${f(m[3])}\n   = ${f(x2)}\n`}
-      {`y' = ${f(m[4])}·${f(x)} + ${f(m[5])}·${f(y)} + ${f(m[6])}·${f(z)} + ${f(m[7])}\n   = ${f(y2)}\n`}
-      {`z' = ${f(m[8])}·${f(x)} + ${f(m[9])}·${f(y)} + ${f(m[10])}·${f(z)} + ${f(m[11])}\n   = ${f(z2)}`}
+      <Eq label="Transform a point">{'p′ = M p,    p = [x, y, z, 1]'}</Eq>
+      <Eq>{'x′ = m_{00} x + m_{01} y + m_{02} z + m_{03}'}</Eq>
+      <Eq>{'y′ = m_{10} x + m_{11} y + m_{12} z + m_{13}'}</Eq>
+      <Eq>{'z′ = m_{20} x + m_{21} y + m_{22} z + m_{23}'}</Eq>
+      <Note>The last column of M is the move (translation); the 3 × 3 block is the turn, scale and shear.</Note>
+      <Numbers
+        title={`Vertex ${vertex}`}
+        lines={[
+          `p = (${f(x)}, ${f(y)}, ${f(z)}, 1)`,
+          `x′ = ${f(m[0])}·${f(x)} + ${f(m[1])}·${f(y)} + ${f(m[2])}·${f(z)} + ${f(m[3])} = ${f(x2)}`,
+          `y′ = ${f(m[4])}·${f(x)} + ${f(m[5])}·${f(y)} + ${f(m[6])}·${f(z)} + ${f(m[7])} = ${f(y2)}`,
+          `z′ = ${f(m[8])}·${f(x)} + ${f(m[9])}·${f(y)} + ${f(m[10])}·${f(z)} + ${f(m[11])} = ${f(z2)}`,
+        ]}
+      />
     </FormulaBox>
   )
   const viewLabel = choice === 'final' || !composed.steps[i] ? 'final matrix' : `after operation ${i + 1}`

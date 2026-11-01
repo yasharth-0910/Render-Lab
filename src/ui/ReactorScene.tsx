@@ -18,6 +18,7 @@ import {
 } from '../core/render/sceneEditor'
 import { meshFor } from '../core/render/sceneMeshes'
 import { clearGradient, renderLines3D, renderShaded } from '../core/render/scene'
+import { Eq, Note } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -314,11 +315,14 @@ export default function ReactorScene() {
       }
       formula={
         <FormulaBox>
-          {'M = T · Rz · Ry · Rx · S   (scale, then turn, then move)\n'}
-          {'back facing if n · (a − eye) ≥ 0  → culled when culling is on\n'}
-          {'pick: the object whose triangle under the mouse has the smallest depth\n\n'}
-          {'colour = albedo × (ambient + Σ lamp × max(0, n·l) × 1/(1+(d/range)²)) + emissive\n'}
-          {'fog: mix(colour, fogColour, 1 − e^(−density × distance))'}
+          <Eq label="Model matrix of an object">{'M = T · R_z · R_y · R_x · S'}</Eq>
+          <Note>Scale first, then turn (x first, z last), then move.</Note>
+          <Eq label="Back-face culling">{'back facing if   n · (a − eye) ≥ 0'}</Eq>
+          <Eq label="Light from one lamp">{'L = lamp · max(0, n · l) · frac{1}{1 + (d / range)^2}'}</Eq>
+          <Eq label="Colour of a triangle">{'colour = albedo × ( ambient + Σ L ) + emissive'}</Eq>
+          <Note>n is the triangle normal, l the direction to the lamp and d the distance to it. Each triangle is lit once (flat shading).</Note>
+          <Eq label="Fog">{'fog = 1 − e^{−density · distance}'}</Eq>
+          <Note>Picking: the object whose triangle under the mouse has the smallest depth is the one selected.</Note>
         </FormulaBox>
       }
     />

@@ -8,6 +8,7 @@ import type { Camera } from '../core/render/camera'
 import { Framebuffer } from '../core/render/framebuffer'
 import { createCube } from '../core/render/mesh'
 import { renderWireframe } from '../core/render/render'
+import { Eq, Note } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import { usePausedRef } from './shell/ShellContext'
@@ -81,7 +82,14 @@ export default function RasterCanvas() {
           divide by w, and the edges are drawn into our own pixel array. Use the Pause button in the top bar to freeze it.
         </div>
       }
-      formula={<FormulaBox>{'p_screen = viewport( P · V · M · p )\nM = rotateY(t) · rotateX(0.6 t)\nP = perspective(60°, 4:3, 0.1, 100)'}</FormulaBox>}
+      formula={
+        <FormulaBox>
+          <Eq label="Pipeline">{'p_{screen} = viewport( P · V · M · p )'}</Eq>
+          <Eq label="Model matrix (the spin)">{'M = R_y(t) · R_x(0.6 t)'}</Eq>
+          <Eq label="Projection">{'P = perspective(60°, 4:3, 0.1, 100)'}</Eq>
+          <Note>p is a corner of the cube. M turns the cube, V moves the camera to the origin, P makes far things smaller (after the divide by w), and the viewport maps the result to pixels.</Note>
+        </FormulaBox>
+      }
     />
   )
 }

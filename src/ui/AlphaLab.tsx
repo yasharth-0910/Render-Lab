@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { compositeLayers, over, type CompositeStep, type Rgba } from '../core/render/alpha'
 import { Framebuffer } from '../core/render/framebuffer'
 import AlphaScene3D from './AlphaScene3D'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -134,11 +135,11 @@ function Layers2D({ modeSwitch }: { modeSwitch: React.ReactNode }) {
         const { names, colors } = stackAt(picked.x, picked.y)
         const base = checker(picked.x, picked.y)
         const { steps, result } = compositeLayers(colors, base)
-        log(`Pixel (${picked.x},${picked.y}): checkerboard (${base[0]},${base[1]},${base[2]})`)
+        log(`Pixel (${picked.x}, ${picked.y}): checkerboard (${base[0]}, ${base[1]}, ${base[2]})`)
         steps.forEach((s, i) => {
-          log(`  ${names[i]} over: a_out = ${n2(s.out[3])}, RGB (${s.dst.slice(0, 3).map(Math.round).join(',')}) -> (${s.out.slice(0, 3).map(Math.round).join(',')})`)
+          log(`  ${names[i]} over: \`a_{out} = ${n2(s.out[3])}\`, RGB (${s.dst.slice(0, 3).map(Math.round).join(', ')}) → (${s.out.slice(0, 3).map(Math.round).join(', ')})`)
         })
-        log(`  final RGB (${Math.round(result[0])},${Math.round(result[1])},${Math.round(result[2])}) alpha ${n2(result[3])}`)
+        log(`  final RGB (${Math.round(result[0])}, ${Math.round(result[1])}, ${Math.round(result[2])}), alpha ${n2(result[3])}`)
       }
     }, 300)
     return () => clearTimeout(id)
@@ -167,22 +168,25 @@ function Layers2D({ modeSwitch }: { modeSwitch: React.ReactNode }) {
     })
   }
 
-  // The formula box: real numbers for the picked pixel.
+  // The formula box: the equations, then the real numbers for the picked pixel.
   let formula: React.ReactNode
   if (picked) {
     const { names, colors } = stackAt(picked.x, picked.y)
     const base = checker(picked.x, picked.y)
     const { steps, result } = compositeLayers(colors, base)
     formula = (
-      <>
-        {'out_a = a_s + a_d (1 − a_s)\nout_rgb = (c_s a_s + c_d a_d (1 − a_s)) / out_a\n\n'}
-        {`Pixel (${picked.x}, ${picked.y})\nCheckerboard: (${base[0]}, ${base[1]}, ${base[2]}), alpha 1.00\n\n`}
-        {steps.map((s, i) => explain(s, names[i])).join('\n\n')}
-        {`\n\nFinal: RGB (${Math.round(result[0])}, ${Math.round(result[1])}, ${Math.round(result[2])}), alpha ${n2(result[3])}`}
-      </>
+      <Numbers
+        title={`Pixel (${picked.x}, ${picked.y})`}
+        lines={[
+          `checkerboard (${base[0]}, ${base[1]}, ${base[2]}), alpha 1.00`,
+          ...steps.flatMap((step, i) => ['', ...explain(step, names[i]).split('\n')]),
+          '',
+          `final: RGB (${Math.round(result[0])}, ${Math.round(result[1])}, ${Math.round(result[2])}), alpha ${n2(result[3])}`,
+        ]}
+      />
     )
   } else {
-    formula = 'Click the canvas to pick a pixel and see the numbers.'
+    formula = <Note>Click the canvas to pick a pixel and see the numbers.</Note>
   }
 
   const small = { background: 'none', color: theme.text, border: `1px solid ${theme.border}`, borderRadius: 3, cursor: 'pointer', padding: '0 6px' } as const
@@ -217,7 +221,13 @@ function Layers2D({ modeSwitch }: { modeSwitch: React.ReactNode }) {
           </div>
         </>
       }
-      formula={<FormulaBox>{formula}</FormulaBox>}
+      formula={
+        <FormulaBox>
+          <Eq label="Alpha out">{'a_{out} = a_s + a_d (1 − a_s)'}</Eq>
+          <Eq label="Colour out">{'c_{out} = frac{c_s a_s + c_d a_d (1 − a_s)}{a_{out}}'}</Eq>
+          {formula}
+        </FormulaBox>
+      }
     />
   )
 }

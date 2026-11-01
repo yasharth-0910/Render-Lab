@@ -7,6 +7,7 @@ import { maxDistance, polygonArea } from '../core/simplify/metrics'
 import { rdpToCount } from '../core/simplify/rdp'
 import { createCoastline, createIsland, createSpiral, createStar, parsePoints } from '../core/simplify/shapes'
 import { keptMask, triangleArea, visvalingamSteps, type Pt } from '../core/simplify/visvalingam'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -134,7 +135,7 @@ export default function SimplifyLab() {
     const id = setTimeout(() => {
       log(`Keep ${keepCount} of ${n}: removed ${removeCount}, max distance ${f(quality.maxDist)}${closed ? `, area error ${quality.areaErrorPct.toFixed(2)}%` : ''}`)
       const last = vw.steps[removeCount - 1]
-      if (stepMode && last) log(`  last removal: vertex #${last.index}, area ${fa(last.area)} (raw ${fa(last.rawArea)}), neighbours #${last.prev} and #${last.next}`)
+      if (stepMode && last) log(`  last removal: vertex #${last.index}, \`area = ½ |(b − a) × (c − a)|\` = ${fa(last.area)} (raw ${fa(last.rawArea)}), neighbours #${last.prev} and #${last.next}`)
     }, 250)
     return () => clearTimeout(id)
   }, [keepCount, points, closed, stepMode])
@@ -194,9 +195,8 @@ export default function SimplifyLab() {
     }
   }, [points, closed, n, simplified, removeCount, vw.steps, showRemoved, showKept, colorByArea, showRdp, rdpResult, highlighted, areaRange])
 
-  // Formula box.
+  // Formula box: the equations, then the numbers of the highlighted vertex.
   let formula: React.ReactNode
-  const header = 'area = 0.5 × |(b − a) × (c − a)|\n(b−a)×(c−a) = (bx−ax)(cy−ay) − (by−ay)(cx−ax)\n\n'
   if (highlighted) {
     const a = points[highlighted.prev]
     const b = points[highlighted.index]
@@ -206,19 +206,20 @@ export default function SimplifyLab() {
     const cross = u[0] * v[1] - u[1] * v[0]
     formula = (
       <>
-        {header}
-        {`Vertex #${highlighted.index} (last removed)\n`}
-        {`a = #${highlighted.prev} ${pt(a)}\nb = #${highlighted.index} ${pt(b)}\nc = #${highlighted.next} ${pt(c)}\n\n`}
-        {`b − a = ${pt(u)}\nc − a = ${pt(v)}\n`}
-        {`cross = ${f(u[0])}×${f(v[1])} − ${f(u[1])}×${f(v[0])} = ${fa(cross)}\n`}
-        {`area = 0.5 × |${fa(cross)}| = ${fa(triangleArea(a, b, c))}`}
-        {highlighted.area > highlighted.rawArea + 1e-12
-          ? `\nRanked area = max(area, last removed) = ${fa(highlighted.area)}\n(the monotonic rule raised it)`
-          : ''}
+        <Numbers
+          title={`Vertex #${highlighted.index} (last removed)`}
+          lines={[
+            `a = #${highlighted.prev} ${pt(a)}`, `b = #${highlighted.index} ${pt(b)}`, `c = #${highlighted.next} ${pt(c)}`,
+            `b − a = ${pt(u)},  c − a = ${pt(v)}`,
+            `cross = ${f(u[0])}×${f(v[1])} − ${f(u[1])}×${f(v[0])} = ${fa(cross)}`,
+            `area = ½ × |${fa(cross)}| = ${fa(triangleArea(a, b, c))}`,
+            ...(highlighted.area > highlighted.rawArea + 1e-12 ? [`ranked area = max(area, last removed) = ${fa(highlighted.area)}  (the monotonic rule raised it)`] : []),
+          ]}
+        />
       </>
     )
   } else {
-    formula = <>{header}{'Turn on Step mode and remove a vertex to see its numbers here.'}</>
+    formula = <Note>Turn on Step mode and remove a vertex to see its numbers here.</Note>
   }
 
   const checkbox = (label: string, checked: boolean, set: (v: boolean) => void) => (
@@ -301,7 +302,14 @@ export default function SimplifyLab() {
           )}
         </>
       }
-      formula={<FormulaBox>{formula}</FormulaBox>}
+      formula={
+        <FormulaBox>
+          <Eq label="Triangle area (2D cross product)">{'area = ½ |(b − a) × (c − a)|'}</Eq>
+          <Eq>{'(b − a) × (c − a) = (b_x − a_x)(c_y − a_y) − (b_y − a_y)(c_x − a_x)'}</Eq>
+          <Note>The vertex whose triangle with its two neighbours has the smallest area is removed first.</Note>
+          {formula}
+        </FormulaBox>
+      }
     />
   )
 }

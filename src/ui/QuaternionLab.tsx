@@ -17,6 +17,7 @@ import { Framebuffer } from '../core/render/framebuffer'
 import { drawLine } from '../core/render/line'
 import { createAircraft } from '../core/render/meshes'
 import { renderWireframe } from '../core/render/render'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import { MatrixView } from './components/OpEditor'
@@ -192,17 +193,24 @@ export default function QuaternionLab() {
   const vOut = rotateVec3(qShown, v)
   const formula = (
     <FormulaBox>
-      {`q = (cos(a/2), sin(a/2) × axis)\n`}
-      {`a = ${f2(deg(aa.angle))}°, axis = ${v3(aa.axis)}\n`}
-      {`cos(a/2) = ${f(Math.cos(half))}, sin(a/2) = ${f(Math.sin(half))}\n`}
-      {`q = [x, y, z, w] = [${f(qShown[0])}, ${f(qShown[1])}, ${f(qShown[2])}, ${f(qShown[3])}]\n\n`}
-      {`v' = q v q*   (v = vertex ${vertex} = ${v3(v)})\n`}
-      {`Written out: v' = v + 2w (u × v) + 2 u × (u × v)\n`}
-      {`u = (x, y, z) = ${v3(u)},  w = ${f(qShown[3])}\n`}
-      {`u × v = ${v3(uv)}\n`}
-      {`u × (u × v) = ${v3(uuv)}\n`}
-      {`v' = ${v3(v)} + 2·${f(qShown[3])}·${v3(uv)} + 2·${v3(uuv)}\n`}
-      {`   = ${v3(vOut)}`}
+      <Eq label="Quaternion from axis and angle">{'q = ( cos frac{a}{2},  sin frac{a}{2} · axis )'}</Eq>
+      <Eq label="Rotate a vector">{"v′ = q v q*"}</Eq>
+      <Eq>{'v′ = v + 2w (u × v) + 2 u × (u × v)'}</Eq>
+      <Note>u = (x, y, z) is the vector part of q and w its last number.</Note>
+      <Numbers
+        title={`Vertex ${vertex}`}
+        lines={[
+          `a = ${f2(deg(aa.angle))}°,  axis = ${v3(aa.axis)}`,
+          `cos(a/2) = ${f(Math.cos(half))},  sin(a/2) = ${f(Math.sin(half))}`,
+          `q = [x, y, z, w] = [${f(qShown[0])}, ${f(qShown[1])}, ${f(qShown[2])}, ${f(qShown[3])}]`,
+          `v = ${v3(v)}`,
+          `u = ${v3(u)},  w = ${f(qShown[3])}`,
+          `u × v = ${v3(uv)}`,
+          `u × (u × v) = ${v3(uuv)}`,
+          `v′ = ${v3(v)} + 2·${f(qShown[3])}·${v3(uv)} + 2·${v3(uuv)}`,
+          `   = ${v3(vOut)}`,
+        ]}
+      />
     </FormulaBox>
   )
 

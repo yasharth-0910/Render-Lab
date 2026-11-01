@@ -190,12 +190,22 @@ body {
 .bottom-dock .tab-button .dot { width: 7px; height: 7px; border-radius: 50%; background: #6ee7a0; }
 .bottom-dock .tab-button .dot.warn { background: #ff6b6b; }
 .bottom-dock .count { font: 10.5px var(--font-mono); color: var(--muted); }
-.console-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 10px; font: 12px/1.55 var(--font-mono); background: var(--viewport); }
-.console-line { display: flex; gap: 12px; white-space: pre-wrap; }
-.console-line .time { color: #667084; flex: none; width: 52px; text-align: right; }
+.console-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 12px 8px; font: 12.5px/1.6 var(--font-ui); background: var(--viewport); }
+.console-line { display: flex; gap: 12px; margin-top: 5px; }
+.console-line:first-child { margin-top: 0; }
+.console-line .time { color: #667084; flex: none; width: 52px; text-align: right; font: 11px/1.9 var(--font-mono); }
+.console-line .text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .console-line.trace .text { color: #c3cad6; }
 .console-line.info .text { color: var(--accent); }
 .console-line.warn .text { color: #ffcf5c; }
+/* a line that continues the one above it: indented under it with a thin rule */
+.console-line.sub { margin-top: 1px; }
+.console-line.sub .text { margin-left: 4px; padding-left: 10px; border-left: 2px solid var(--border); color: var(--muted); }
+.console-line.sub.trace .text { color: #aab2c0; }
+.console-math {
+  display: inline-block; padding: 0 7px; margin: 0 1px; border-radius: 4px; font-size: 14px; line-height: 1.5;
+  background: rgba(76, 194, 255, 0.1); border: 1px solid rgba(76, 194, 255, 0.22); color: #eaf3fb;
+}
 .console-empty { color: #667084; }
 
 /* ---------- right dock: Inspector ---------- */
@@ -231,10 +241,29 @@ body {
 .vec3-field.axis-z .axis-tag { background: var(--axis-z); }
 .vec3-field .num-field { width: 100%; min-width: 0; border-radius: 0 3px 3px 0; }
 
+/* ---------- formulas: typeset equations, notes and live numbers ---------- */
 .formula-box {
-  font: 12px/1.5 var(--font-mono); background: var(--viewport); border: 1px solid var(--border); border-radius: 4px;
-  padding: 8px; max-height: 300px; overflow: auto; white-space: pre-wrap;
+  display: flex; flex-direction: column; gap: 10px; padding: 10px 11px; max-height: 440px; overflow: auto;
+  background: var(--viewport); border: 1px solid var(--border); border-radius: 4px;
 }
+.eq-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.eq-body {
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", STIXGeneral, "Times New Roman", Georgia, serif;
+  font-size: 16px; line-height: 1.75; color: var(--text); padding: 3px 10px;
+  border-left: 2px solid var(--accent); background: rgba(255, 255, 255, 0.035); border-radius: 0 3px 3px 0;
+  overflow-wrap: break-word; /* a long equation wraps at its spaces */
+}
+.math { font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", STIXGeneral, "Times New Roman", Georgia, serif; }
+.math i { font-style: italic; }
+.math sub, .math sup { font-size: 0.72em; line-height: 0; }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 3px; text-align: center; line-height: 1.35; }
+.frac-top { padding: 0 4px 1px; border-bottom: 1px solid currentColor; }
+.frac-bottom { padding: 1px 4px 0; }
+.eq-note { margin: 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.numbers {
+  font: 11.5px/1.55 var(--font-mono); padding: 5px 8px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border); border-radius: 3px;
+}
+.numbers-line { padding-left: 2ch; text-indent: -2ch; overflow-wrap: anywhere; white-space: pre-wrap; min-height: 1.55em; } /* a line that wraps continues indented */
 
 /* ---------- status bar ---------- */
 .statusbar {
@@ -303,3 +332,21 @@ input[type="range"]:focus-visible { box-shadow: 0 0 0 2px var(--accent-glow); }
 .tree-leaf.active, .tree-leaf.active:hover { background: var(--select); border-color: rgba(76, 194, 255, 0.55); color: #fff; }
 .tree-leaf.is-hidden { opacity: 0.45; text-decoration: line-through; }
 .tree-leaf span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- the benchmark lab: result tables and the progress bar ---------- */
+.bench-block { margin-top: 18px; }
+.bench-block h3 { margin: 0 0 4px; font-size: 14px; color: var(--accent); }
+.bench-empty, .bench-meta, .bench-note { color: var(--muted); font-size: 12px; }
+.bench-meta { margin-bottom: 6px; }
+.bench-note { margin-top: 2px; }
+.bench-summary { color: var(--text); font-size: 12.5px; margin-top: 4px; }
+.bench-title { font-weight: 600; margin: 6px 0 4px; }
+.bench-table { width: 100%; font: 12px var(--font-mono); background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+.bench-table th { text-align: left; padding: 4px 8px; background: var(--panel-raised); color: var(--muted); white-space: nowrap; font-weight: 600; }
+.bench-table td { padding: 3px 8px; border-top: 1px solid var(--sep); white-space: nowrap; }
+.bench-table td.num { text-align: right; }
+.bench-table tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+.bench-progress { width: 100%; height: 8px; margin: 8px 0 4px; appearance: none; border: 0; border-radius: 4px; overflow: hidden; background: #3a4150; }
+.bench-progress::-webkit-progress-bar { background: #3a4150; }
+.bench-progress::-webkit-progress-value { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); transition: width 0.1s linear; }
+.bench-progress::-moz-progress-bar { background: var(--accent); }

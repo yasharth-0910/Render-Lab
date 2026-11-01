@@ -13,6 +13,7 @@ import { createCube } from '../core/render/mesh'
 import { createPlane, createUVSphere } from '../core/render/meshes'
 import { renderMesh } from '../core/render/renderMesh'
 import { renderTransparent, type TransparentItem } from '../core/render/transparent'
+import { Eq, Note } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import NumberRow from './components/NumberRow'
@@ -156,7 +157,9 @@ export default function AlphaScene3D({ modeSwitch }: { modeSwitch: React.ReactNo
       }
       formula={
         <FormulaBox>
-          {'out_a = a_s + a_d (1 − a_s)\nout_rgb = (c_s a_s + c_d a_d (1 − a_s)) / out_a\n\nOrder per frame:\n1. solid things (write depth)\n2. see-through, far to near\n   (test depth, no depth write)'}
+          <Eq label="Alpha out">{'a_{out} = a_s + a_d (1 − a_s)'}</Eq>
+          <Eq label="Colour out">{'c_{out} = frac{c_s a_s + c_d a_d (1 − a_s)}{a_{out}}'}</Eq>
+          <Note>Each frame: 1. draw the solid things (they write the depth buffer). 2. draw the see-through things from far to near (they test the depth but do not write it), because the order of the blend changes the colour.</Note>
         </FormulaBox>
       }
     />

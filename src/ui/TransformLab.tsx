@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { classifyMatrix, composeOps2D, transformPolygon, type Op2 } from '../core/math/transformLab'
 import type { Mat3 } from '../core/math/mat3'
+import { Eq, Note, Numbers } from './components/Equation'
 import FormulaBox from './components/FormulaBox'
 import LabLayout from './components/LabLayout'
 import OpEditor, { makeOp, MatrixView, type Spec, type UiOp } from './components/OpEditor'
@@ -183,11 +184,20 @@ function Transform2D({ ops, setOps, modeSwitch }: { ops: UiOp[]; setOps: (o: UiO
   const [x2, y2] = poly.points[vertex]
   const formula = (
     <FormulaBox>
-      {`p' = M p     (p = [x, y, 1])\n\n`}
-      {`vertex ${vertex}: p = (${f(x)}, ${f(y)}, 1)\n\n`}
-      {`x' = ${f(m[0])}·${f(x)} + ${f(m[1])}·${f(y)} + ${f(m[2])}·1\n   = ${f(x2)}\n`}
-      {`y' = ${f(m[3])}·${f(x)} + ${f(m[4])}·${f(y)} + ${f(m[5])}·1\n   = ${f(y2)}\n\n`}
-      {`columns of M: i' = (${f(m[0])}, ${f(m[3])}), j' = (${f(m[1])}, ${f(m[4])}), origin → (${f(m[2])}, ${f(m[5])})`}
+      <Eq label="Transform a point">{"p′ = M p,    p = [x, y, 1]"}</Eq>
+      <Eq>{'x′ = m_{00} x + m_{01} y + m_{02}'}</Eq>
+      <Eq>{'y′ = m_{10} x + m_{11} y + m_{12}'}</Eq>
+      <Note>The columns of M are where the basis vectors go: i′ is the first column, j′ the second, and the last column is where the origin goes.</Note>
+      <Numbers
+        title={`Vertex ${vertex}`}
+        lines={[
+          `p = (${f(x)}, ${f(y)}, 1)`,
+          `x′ = ${f(m[0])}·${f(x)} + ${f(m[1])}·${f(y)} + ${f(m[2])}·1 = ${f(x2)}`,
+          `y′ = ${f(m[3])}·${f(x)} + ${f(m[4])}·${f(y)} + ${f(m[5])}·1 = ${f(y2)}`,
+          `i′ = (${f(m[0])}, ${f(m[3])}),  j′ = (${f(m[1])}, ${f(m[4])})`,
+          `origin → (${f(m[2])}, ${f(m[5])})`,
+        ]}
+      />
     </FormulaBox>
   )
 

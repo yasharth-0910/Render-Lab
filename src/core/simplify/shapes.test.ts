@@ -34,3 +34,18 @@ describe('parsePoints', () => {
     expect(parsePoints('')).toEqual({ points: [], bad: 0 })
   })
 })
+
+describe('createCoastline with a size', () => {
+  it('makes the asked number of points; the default is still 500', () => {
+    expect(createCoastline(2000).points.length).toBe(2000)
+    expect(createCoastline(100).points.length).toBe(100)
+    expect(createCoastline().points.length).toBe(500)
+  })
+  it('bigger ones are the same curve sampled more finely: same start and end, same seed', () => {
+    const small = createCoastline(100).points
+    const big = createCoastline(1000).points
+    expect(small[0]).toEqual(big[0])
+    expect(small[99]).toEqual(big[999])
+    expect(createCoastline(1000).points).toEqual(big)
+  })
+})
