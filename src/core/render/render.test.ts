@@ -12,7 +12,7 @@ function litPixels(fb: Framebuffer): number {
   return n
 }
 
-describe('drawLine (placeholder DDA)', () => {
+describe('drawLine', () => {
   it('draws a horizontal line including both end points', () => {
     const fb = new Framebuffer(10, 5)
     drawLine(fb, 1, 2, 6, 2, [255, 0, 0, 255])
