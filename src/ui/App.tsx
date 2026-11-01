@@ -2,6 +2,7 @@ import { useState } from 'react'
 import AlphaLab from './AlphaLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
+import QuaternionLab from './QuaternionLab'
 import RasterCanvas from './RasterCanvas'
 import SimplifyLab from './SimplifyLab'
 import TransformLab from './TransformLab'
@@ -14,6 +15,7 @@ const TABS = [
   { name: 'Alpha Lab', component: AlphaLab },
   { name: 'Simplify Lab', component: SimplifyLab },
   { name: 'Transforms Lab', component: TransformLab },
+  { name: 'Quaternion Lab', component: QuaternionLab },
 ]
 
 export default function App() {

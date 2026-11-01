@@ -71,3 +71,32 @@ export function createPlane(size: number): Mesh {
     edges: [[0, 1], [1, 2], [2, 3], [3, 0]],
   }
 }
+
+/**
+ * A simple aircraft as a wireframe (edges only, no triangles), nose along +x,
+ * wings along +-y, tail fin up +z. About 2 units long, so a turn is easy to see.
+ */
+export function createAircraft(): Mesh {
+  return {
+    vertices: [
+      [1, 0, 0], // 0 nose
+      [-1, 0, 0], // 1 tail end
+      [0.2, 0, 0], // 2 wing front (where the wings meet the body)
+      [-0.3, 0.9, 0], // 3 right wing tip
+      [-0.3, -0.9, 0], // 4 left wing tip
+      [-0.35, 0, 0], // 5 wing back
+      [-1, 0.4, 0], // 6 tail plane right tip
+      [-1, -0.4, 0], // 7 tail plane left tip
+      [-1, 0, 0.45], // 8 fin top
+      [-0.65, 0, 0], // 9 fin front
+      [-0.75, 0, 0], // 10 tail plane front
+    ],
+    triangles: [],
+    edges: [
+      [0, 1], // body
+      [2, 3], [2, 4], [3, 5], [4, 5], // wings
+      [10, 6], [6, 1], [1, 7], [7, 10], // tail plane
+      [9, 8], [8, 1], // fin
+    ],
+  }
+}

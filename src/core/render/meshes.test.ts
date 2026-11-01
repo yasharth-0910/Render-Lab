@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createUVSphere, createPlane } from './meshes'
+import { createUVSphere, createPlane, createAircraft } from './meshes'
 import { cross, dot, length, sub } from '../math/vec3'
 
 describe('createUVSphere', () => {
@@ -45,6 +45,22 @@ describe('createPlane', () => {
       const a = p.vertices[i]
       const n = cross(sub(p.vertices[j], a), sub(p.vertices[k], a))
       expect(n[0]).toBe(0); expect(n[2]).toBe(0); expect(n[1]).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('createAircraft', () => {
+  const plane = createAircraft()
+  it('is a wireframe with valid edges (no triangles) and the nose at +x', () => {
+    expect(plane.triangles.length).toBe(0)
+    expect(plane.edges.length).toBeGreaterThan(8)
+    for (const e of plane.edges) for (const i of e) expect(i >= 0 && i < plane.vertices.length).toBe(true)
+    const noseX = Math.max(...plane.vertices.map((v) => v[0]))
+    expect(plane.vertices[0]).toEqual([noseX, 0, 0])
+  })
+  it('is left-right symmetric (every vertex has a mirror image across y = 0)', () => {
+    for (const [x, y, z] of plane.vertices) {
+      expect(plane.vertices.some((v) => v[0] === x && v[1] === -y && v[2] === z)).toBe(true)
     }
   })
 })
