@@ -1,0 +1,35 @@
+\chapter{DESIGN AND ARCHITECTURE}\nonum
+
+\section{Tools}
+RenderLab is written in TypeScript. The interface uses React 19 and is built with Vite. Tests run with Vitest \cite{vitest}. The maths, line drawing, triangle filling and blending are our own code. We did not use a graphics or maths package.
+
+\section{Two Layers}
+The code is in two folders (Figure~\ref{fig:arch}). The folder \texttt{src/core} holds the algorithms as plain functions. They take numbers and return numbers, and they do not use React or the browser, so they can be tested without a screen. The folder \texttt{src/ui} has one React file for each lab and the editor window. A lab calls the core, writes the result into a framebuffer, and shows it on a canvas with \texttt{putImageData}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=7mm]
+\node[user, text width=3.2cm] (ui) {\st{src/ui}{one file per lab, editor window, formulas}};
+\node[proc, right=14mm of ui, text width=3.4cm] (core) {\st{src/core}{math, render, simplify, bench: plain functions}};
+\node[data, right=14mm of core, text width=2.5cm] (fb) {\st{Framebuffer}{array of RGBA bytes}};
+\draw[arr] (ui) -- node[lbl, above] {calls} (core);
+\draw[arr] (core) -- node[lbl, above] {writes} (fb);
+\node[ai, below=6mm of fb, text width=2.5cm] (cv) {\st{Canvas}{putImageData}};
+\draw[arr] (fb) -- (cv);
+\end{tikzpicture}
+\caption{The two layers of RenderLab and the path of one frame}
+\label{fig:arch}
+\end{figure}
+
+\section{Drawing Steps for One Frame}
+\begin{enumerate}
+\item Each vertex is moved by the model matrix into world space.
+\item Back-facing triangles are removed.
+\item The view and perspective matrices give each vertex a pixel position. The $y$ axis is flipped because screen rows grow downward. If a vertex is behind the camera, the triangle is skipped (there is no clipping).
+\item Each solid triangle is filled using a depth buffer. See-through triangles are drawn in a second pass.
+\item Wireframes and outlines are drawn with Bresenham's line.
+\end{enumerate}
+The \texttt{Framebuffer} class stores four bytes per pixel, row by row from the top. Because it is a \texttt{Uint8ClampedArray}, any value above 255 or below 0 is clamped by the language. The depth buffer keeps one number per pixel: the smallest depth drawn so far.
+
+\section{The Editor Window}
+All labs share one window. A lab gives the window a canvas, some controls, a stats line and some lines for the Output panel. Equations are written in a small plain-text form and drawn by our own parser (\texttt{mathParse.ts}), so the formulas on screen use the same numbers as the code.

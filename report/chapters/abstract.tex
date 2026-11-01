@@ -1,0 +1,8 @@
+RenderLab is a program that runs in a web browser and helps a student see how computer graphics works. Every picture on the screen is drawn by our own code. The code writes colours into an array of pixels and the browser shows that array. We did not use WebGL or any 3D library.
+
+The project is made for the course Geometric Algebra for Computer Graphics. It has the four algorithms the course asks for: Bresenham line drawing, back-face culling, alpha compositing (the Porter--Duff ``over'' rule) and Visvalingam--Whyatt line simplification. Each one has its own lab. The lab shows the formulas, the numbers at each step, and a comparison with a simpler or wrong version. Other labs cover 2D and 3D transformations, determinants, quaternions against Euler angles, the outer product, the sine rule, line intersection, bases and handedness. As extras, there is a demo scene with a small scene editor, and a benchmark tab that times our code.
+
+All 487 automated tests pass. We tried all 195 controls by hand and fixed two layout bugs. In the benchmark (15 timed runs after 5 warm-up runs), back-face culling removed 50.33\% of the 15,412 triangles of the demo scene and cut the time for one frame from 41.4 ms to 28.0 ms. The older DDA line method was faster than Bresenham in JavaScript (68 ms against 122.5 ms for 10,000 long lines). Visvalingam--Whyatt took 14.3 ms for 2,000 points, and its time grew roughly with the square of the number of points.
+
+\vspace{6pt}
+\noindent\textbf{Keywords:} software rasterizer, Bresenham, back-face culling, alpha compositing, Visvalingam--Whyatt, quaternion, outer product.

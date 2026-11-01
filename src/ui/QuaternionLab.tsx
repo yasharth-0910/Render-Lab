@@ -275,7 +275,7 @@ export default function QuaternionLab() {
           ) : (
             <div style={{ marginTop: 8 }}>
               <canvas ref={plotRef} width={732} height={130} style={{ border: `1px solid ${theme.border}`, borderRadius: 4 }} />
-              <div style={{ color: theme.muted, fontSize: 12 }}>
+              <div style={{ color: theme.muted, fontSize: 12, maxWidth: 732 }}>
                 Angle moved per step (24 equal steps in t). <span style={{ color: theme.accent }}>■</span> slerp: all bars equal.{' '}
                 <span style={{ color: '#e6e6e6' }}>■</span> normalized lerp: short at the ends, tall in the middle. Grey outlines = start and end.
               </div>

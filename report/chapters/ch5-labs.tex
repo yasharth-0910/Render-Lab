@@ -1,0 +1,29 @@
+\chapter{THE OTHER LABS AND THE REACTOR SCENE}\nonum
+
+\section{Transforms Lab}
+This lab applies a list of operations to a letter F (2D) or a cube (3D). In 2D the operations are translate, rotate, scale, shear, reflect and rotate about a point. In 3D they are translate, rotate about $x$, $y$ or $z$, rotate about any axis, rotate about an axis through a point, scale and shear. The operations can be added, removed and reordered. The lab multiplies their matrices in the order given. It shows the combined matrix, the two basis arrows, and the determinant with its meaning (how area or volume changes, and whether the direction of turning is reversed). It also names the result, for example rotation, reflection or shear. Changing the order of a rotation and a translation shows that matrix products depend on order.
+
+\twoshot{06-transforms-2d.png}{06b-transforms-3d.png}{Transforms Lab. Left: 2D, with the F shape, basis arrows and determinant. Right: 3D.}{fig:transforms}
+
+\section{Quaternion Lab}
+The lab has two modes. In the first, two copies of a model are turned by the same yaw, pitch and roll, one with Euler matrices and one with a quaternion. At pitch $90^\circ$ a gimbal lock badge appears and the lab says which two axes became the same line. The quaternion side keeps turning. In the second mode, the lab moves between two rotations with slerp and with lerp, and plots the angle turned at each step. Slerp gives a flat line, and lerp gives a curve (Figure~\ref{fig:quat}).
+
+\twoshot{07b-quaternion-gimbal-lock.png}{07c-quaternion-slerp-vs-lerp.png}{Quaternion Lab. Left: gimbal lock at pitch $90^\circ$. Right: slerp against lerp with the plot.}{fig:quat}
+
+\section{Geometry Lab}
+The Geometry Lab has four modes, and the points can be dragged with the mouse.
+\begin{itemize}
+\item \textbf{Outer product:} the area of the parallelogram and the triangle, clockwise or anticlockwise, and a comparison with the 3D cross product.
+\item \textbf{Sine rule:} the sides, the angles, the three ratios, and the circle through the corners.
+\item \textbf{Line intersection:} the meeting point of two lines, or a message that they are parallel.
+\item \textbf{Bases:} rank, whether the vectors span the plane, coordinates in a basis, Gram--Schmidt, and in 3D the triple product with right-handed or left-handed axes.
+\end{itemize}
+
+\twoshot{08-geometry-outer-product.png}{08d-geometry-bases-plane.png}{Geometry Lab. Left: outer product mode. Right: bases in the plane with Gram--Schmidt.}{fig:geom}
+
+\section{Reactor Scene and Scene Editor}
+The Reactor Scene is an extra, and it is not one of the four required algorithms. It has 271 objects and 15,412 triangles in six folders. Every triangle goes through the same culling, projection and depth test as in the smaller labs. A frame is drawn in this order: a sky gradient; the solid triangles, each lit once from its normal and mixed with fog by its distance; the grid lines, drawn with Bresenham; and last a bloom glow made by blurring the brightest pixels. Lighting, fog and bloom are extras.
+
+The scene editor lets the user click an object in the picture or in the Scene tree, change its name, position, rotation, scale and colour, add a cube, sphere, cylinder or plane, and delete the selected object. The model matrix is built as $T\,R_zR_yR_x\,S$. To pick an object, the editor asks every object which of its triangles is under the clicked pixel (the same picking as in the Culling Lab), and the nearest hit wins. The selected object is outlined with the edges where a triangle facing the camera meets one facing away, drawn with Bresenham's line. The picture can be saved as a PNG or copied.
+
+\twoshot{09-reactor-hero-selected.png}{09b-reactor-wireframe.png}{Reactor Scene. Left: one object selected and outlined. Right: the same scene as a wireframe.}{fig:reactor}

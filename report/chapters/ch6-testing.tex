@@ -1,0 +1,27 @@
+\chapter{TESTING}\nonum
+
+Every function in \texttt{src/core} has a test file. We run them with \texttt{npm test}. The final run gave 31 test files and 487 tests, all passing, and \texttt{npx tsc --noEmit} showed no type errors. The interface code is not unit tested, except the formula parser, because it has no algorithms. Instead we tried every control in a real browser.
+
+\begin{table}[H]
+\centering
+\caption{Tests by area}
+\label{tab:tests}
+\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+Area & Tests\\
+\midrule
+Maths (vectors, matrices, quaternions, and the helpers of three labs) & 159\\
+Rendering (Bresenham, culling, alpha, camera, fill, meshes, lighting, scene, editor) & 229\\
+Line simplification (Visvalingam--Whyatt, RDP, error measures, shapes) & 54\\
+Benchmark tools & 36\\
+Formula parser & 9\\
+\midrule
+Total (31 files) & 487\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Bresenham} has 42 tests (and 3 for DDA). They check hand-worked lines with every error value, all eight directions, and every pair of end points with coordinates from $-4$ to $4$ (6,561 lines). For each line they check the pixel count, the end points, that no pixel is more than half a pixel from the true line, that neighbouring pixels touch, and that the reverse line has the same pixels. \textbf{Culling} has 29 tests for normals, areas, the two tests agreeing, and edge-on triangles. \textbf{Alpha} has 25 tests for hand-worked blends, the order of layers, and the premultiplied version. \textbf{Visvalingam--Whyatt} has 33 tests (54 with RDP, error measures and shapes) for areas, the hand-worked removal order, end points staying, and removal areas never going down.
+
+\textbf{Click-through.} We used every control of every lab in a real browser at 1440 by 900 pixels, and opened every lab again at 1280 by 720 to check the layout. All 195 checks pass. The table is in \texttt{docs/QA.md}. We found two layout bugs and fixed them: tab labels wrapped to two lines and covered the picture, and the caption of the slerp plot was cut off. Neither was in an algorithm.

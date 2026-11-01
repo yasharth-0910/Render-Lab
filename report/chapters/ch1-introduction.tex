@@ -1,0 +1,28 @@
+\chapter{INTRODUCTION}\nonum
+
+\section{General}
+Most graphics tools hide how a picture is made. A library such as WebGL takes triangles and gives back a picture, and the student never sees how one pixel was chosen. RenderLab shows these steps. It is a small renderer where every step is our own code, so each step can be paused and checked.
+
+The program runs in a web browser. One frame is a plain array of pixel values (a \texttt{Uint8ClampedArray}). Our code fills it and the browser copies it to a canvas. The window looks like a game-engine editor (Figure~\ref{fig:shell}). The labs are listed on the left. The picture is in the middle, with an Output panel below it that prints what the algorithm is doing. The controls and formulas are on the right.
+
+\begin{figure}[H]
+\centering
+\shot{00-app-shell.png}{0.85\linewidth}
+\caption{The RenderLab window with the Rotating Cube open}
+\label{fig:shell}
+\end{figure}
+
+\section{Motivation}
+The course Geometric Algebra for Computer Graphics (22B12MA412) has ideas that are easy to read but easy to get wrong in code. Examples are the error value in Bresenham's line, the sign of a cross product in culling, the order of layers in a blend, and the order in which points are removed in line simplification. We wanted a tool where changing one number changes the picture and the working next to it. We also have to explain every line of our code, so we wrote the renderer ourselves in plain TypeScript with comments.
+
+\section{Objectives}
+\begin{itemize}
+\item Write the four required algorithms by hand: Bresenham line drawing, back-face culling, alpha compositing and Visvalingam--Whyatt.
+\item Give each algorithm a lab with formulas, step-by-step numbers and a comparison.
+\item Add labs for the other course topics: transformations, determinants, quaternions, the outer product, bases and handedness.
+\item Keep the algorithm code apart from the user interface, and test every algorithm.
+\item Measure our own code and report the numbers as they came out.
+\end{itemize}
+
+\section{Scope}
+The four required algorithms and their labs are the main part of the project. Two things are extras: the Reactor Scene (a demo scene with a scene editor, lighting, fog and bloom) and the Benchmark tab. Lighting, fog and bloom are not among the four required algorithms.

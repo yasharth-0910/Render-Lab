@@ -1,0 +1,27 @@
+\chapter{MATHEMATICAL BACKGROUND}\nonum
+
+Points are column vectors and matrices are stored row by row. The camera looks down the negative $z$ axis.
+
+\section{Outer Product and Area}
+For two vectors $\mathbf u,\mathbf v$ in the plane, the outer product $\mathbf u\wedge\mathbf v$ is a parallelogram with a direction. It has one number, $u_xv_y-u_yv_x$, and the size of that number is the area of the parallelogram. A triangle with corners $a,b,c$ has area $\tfrac12\lvert(b-a)\wedge(c-a)\rvert$. A positive sign means $c$ is to the left of the line from $a$ to $b$ (anticlockwise). A negative sign means clockwise. Zero means the three points are on one line.
+
+In 3D the outer product has three numbers, the same three as the cross product $\mathbf u\times\mathbf v$. The cross product writes them as an arrow at right angles to both vectors, and the length of the arrow is the parallelogram's area. We use this for triangle normals in culling and the 2D version in Visvalingam--Whyatt.
+
+\section{Transformations and Determinants}
+We write a 2D point as $(x,y,1)^T$ and a 3D point as $(x,y,z,1)^T$, so that moving a point is also a matrix. Rotation about the origin by $\theta$ in 2D is
+\[
+R(\theta)=\begin{pmatrix}\cos\theta&-\sin\theta&0\\ \sin\theta&\cos\theta&0\\0&0&1\end{pmatrix}.
+\]
+To rotate about a point $p$, we move $p$ to the origin, rotate, and move back: $T(p)\,R(\theta)\,T(-p)$. In 3D, rotation about an axis uses Rodrigues' formula.
+
+The determinant says how area (2D) or volume (3D) changes. A rotation has determinant $1$. A shear also has determinant $1$ (area stays, shape changes). A scale by $(s_x,s_y)$ has determinant $s_xs_y$. A reflection has determinant $-1$, which means the direction of turning is reversed. If the determinant is $0$, the shape is flattened.
+
+\section{Quaternions}
+A unit quaternion $q=(\cos\tfrac\theta2,\ \sin\tfrac\theta2\,\hat{\mathbf n})$ is a rotation by $\theta$ about the unit axis $\hat{\mathbf n}$. Two rotations are combined by multiplying their quaternions. Euler angles rotate about $x$, $y$ and $z$ one after the other. When the middle angle is $90^\circ$, two of the axes line up and one way of turning is lost. This is called gimbal lock. To move smoothly from $q_0$ to $q_1$ we use slerp \cite{shoemake1985}:
+\[
+\operatorname{slerp}(q_0,q_1,t)=\frac{\sin((1-t)\Omega)}{\sin\Omega}\,q_0+\frac{\sin(t\Omega)}{\sin\Omega}\,q_1,\qquad \cos\Omega=q_0\cdot q_1 .
+\]
+Slerp turns at a constant speed. Plain linear interpolation (lerp) followed by normalizing follows the same path but is faster in the middle.
+
+\section{Bases and Handedness}
+A set of vectors spans a space if every vector in the space can be made from them. The rank is the number of independent vectors. Gram--Schmidt turns independent vectors into perpendicular ones. For three vectors $\mathbf a,\mathbf b,\mathbf c$, the triple product $\mathbf a\cdot(\mathbf b\times\mathbf c)$ is the signed volume of the box they make. Positive means a right-handed system, negative means left-handed, and zero means the vectors are flat. The sine rule says $a/\sin A=b/\sin B=c/\sin C=2R$, where $R$ is the radius of the circle through the three corners.

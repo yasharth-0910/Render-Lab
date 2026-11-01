@@ -147,16 +147,17 @@ body {
 .about-body p { margin: 0; color: var(--muted); }
 
 /* ---------- centre: open-lab tabs, viewport, output dock ---------- */
-.editor-tabs { display: flex; align-items: flex-end; gap: 2px; height: 30px; padding: 0 4px; flex: none; }
+.editor-tabs { display: flex; align-items: flex-end; gap: 2px; height: 30px; padding: 0 4px; flex: none; min-width: 0; }
 .editor-tab {
-  display: flex; align-items: center; height: 26px; border-radius: 4px 4px 0 0; background: #20252d; color: var(--muted); border: 1px solid var(--sep); border-bottom: 0;
+  flex: 0 1 auto; min-width: 64px; overflow: hidden; display: flex; align-items: center; height: 26px; border-radius: 4px 4px 0 0; background: #20252d; color: var(--muted); border: 1px solid var(--sep); border-bottom: 0;
 }
 .editor-tab.active { background: var(--panel); color: var(--text); box-shadow: inset 0 2px 0 var(--accent); }
-.editor-tab-name { display: flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0 6px 0 10px; height: 100%; color: inherit; border-radius: 4px 0 0 0; }
+.editor-tab-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; background: none; border: 0; padding: 0 6px 0 10px; height: 100%; color: inherit; border-radius: 4px 0 0 0; }
 .editor-tab-name:hover:not(:disabled) { background: none; color: var(--text); }
-.editor-tab-close { background: none; border: 0; padding: 0 8px 0 2px; height: 100%; color: var(--muted); }
+.editor-tab-close { flex: none; background: none; border: 0; padding: 0 8px 0 2px; height: 100%; color: var(--muted); }
 .editor-tab-close:hover:not(:disabled) { background: none; color: #fff; }
-.editor-tabs .maximize { margin-left: auto; align-self: center; }
+.editor-tabs .maximize { margin-left: auto; align-self: center; flex: none; }
+.editor-tabs .menu { flex: none; }
 
 .viewport {
   position: relative; display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; min-width: 0; overflow: hidden;

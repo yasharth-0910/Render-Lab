@@ -1,0 +1,40 @@
+\chapter{LIMITATIONS, CONCLUSION AND FUTURE WORK}\nonum
+
+\section{Limitations}
+\begin{itemize}
+\item \textbf{No clipping.} A triangle with a corner behind the camera is skipped completely, not cut. In the demo scene this skipped 359 of 15,412 triangles when culling was off.
+\item \textbf{Flat shading.} Each triangle has one colour, so curved objects show their flat faces.
+\item \textbf{One-sided planes.} A plane has one front side and disappears when seen from behind with culling on.
+\item \textbf{Visvalingam--Whyatt is $O(n^2)$.} It is fine for the lab but would be slow for millions of points.
+\item \textbf{One run, one machine.} The benchmark was run once in headless Chrome. The relative results are useful, but the exact milliseconds will differ on other computers.
+\item \textbf{Bresenham is not faster in JavaScript,} as the benchmark shows.
+\item \textbf{The interface has no automated tests.} We checked it by hand, in Chrome on macOS only.
+\item \textbf{Lighting, fog and bloom} are simple extras and are not among the four required algorithms.
+\end{itemize}
+
+\section{Conclusion}
+RenderLab has the four required algorithms (Bresenham, back-face culling, alpha compositing and Visvalingam--Whyatt) as plain TypeScript with no graphics library. Each has a lab that shows the formulas, the numbers at every step, and a comparison. Other labs cover transformations, determinants, quaternions, the outer product, the sine rule, line intersection, bases and handedness. All 487 tests pass, and all 195 controls passed our click-through after two layout fixes. The benchmark gave some results we did not expect: DDA was faster than Bresenham in JavaScript, and Visvalingam--Whyatt was about 34 times slower than RDP at 2,000 points.
+
+\begin{table}[H]
+\centering
+\caption{Contribution of each student}
+\label{tab:contrib}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.2cm}L@{}}
+\toprule
+Name & Work\\
+\midrule
+Yasharth Singh & TODO: fill in before submission\\
+Rakshit Suneja & TODO: fill in before submission\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Future Work}
+\begin{itemize}
+\item Port the core to Rust and WebAssembly. Bresenham's whole-number arithmetic should then show the speed benefit that JavaScript does not give, and the benchmark can be repeated to check.
+\item Use a heap in Visvalingam--Whyatt to make it $O(n\log n)$.
+\item Cut triangles at the near plane (clipping) so they do not disappear close to the camera.
+\item Add smooth shading and textures.
+\item Add automated tests for the interface.
+\end{itemize}

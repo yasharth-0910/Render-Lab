@@ -14,4 +14,4 @@ One step per session. Do not start the next step on your own.
 - [x] 9. Scene editor + demo scene: cube, sphere, plane, select, properties panel, one low-poly city scene
 - [x] 10. Benchmark panel: frame time, triangle counts, culling on/off, simplification before/after, export results as CSV
 - [x] 10b. Geometry Lab: left/right handed axes, clockwise/anticlockwise, vectors, vector spaces, spanning sets, orthogonal bases, length/area/volume, outer product, triangle area, sine rule, intersection of two lines
-- [ ] 11. Polish + report notes: UI polish, tab layout, README, notes for report
+- [x] 11. Polish + report notes: UI polish, tab layout, README, notes for report
