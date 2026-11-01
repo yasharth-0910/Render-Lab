@@ -3,6 +3,7 @@ import AlphaLab from './AlphaLab'
 import BenchmarkLab from './BenchmarkLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
+import GeometryLab from './GeometryLab'
 import QuaternionLab from './QuaternionLab'
 import RasterCanvas from './RasterCanvas'
 import ReactorScene from './ReactorScene'
@@ -59,6 +60,11 @@ const LABS: (LabEntry & { component: ComponentType })[] = [
     id: 'benchmark', name: 'Benchmark', icon: 'bench', dim: 'both', component: BenchmarkLab,
     topic: 'Experimental results',
     blurb: 'Times the project\'s own algorithms with real code: culling off vs on, Bresenham vs DDA, alpha blending, Visvalingam-Whyatt growth, and matrix vs quaternion maths. Export the numbers as CSV or markdown for the report.',
+  },
+  {
+    id: 'geometry', name: 'Geometry Lab', icon: 'axes', dim: 'both', component: GeometryLab,
+    topic: 'Outer product, areas, sine rule, intersections, vector spaces',
+    blurb: 'Drag points to see the outer product give areas and orientation (clockwise or anticlockwise), the sine rule on a triangle, where two lines meet, how vectors span a space and how Gram-Schmidt makes them perpendicular, and in 3D the triple product that tells a right-handed axis system from a left-handed one.',
   },
 ]
 
