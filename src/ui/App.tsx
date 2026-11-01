@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AlphaLab from './AlphaLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
 import RasterCanvas from './RasterCanvas'
@@ -8,6 +9,7 @@ const TABS = [
   { name: 'Rotating Cube', component: RasterCanvas },
   { name: 'Bresenham Lab', component: BresenhamLab },
   { name: 'Culling Lab', component: CullingLab },
+  { name: 'Alpha Lab', component: AlphaLab },
 ]
 
 export default function App() {

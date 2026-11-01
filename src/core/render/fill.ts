@@ -6,6 +6,7 @@
 // when all three are >= 0. They also let us blend any value stored at the corners,
 // such as depth, across the triangle: value = b0*v0 + b1*v1 + b2*v2.
 
+import type { Rgba } from './alpha'
 import type { Color, Framebuffer } from './framebuffer'
 
 /** A screen point: x pixel, y pixel, and z depth (smaller = nearer). */
@@ -27,6 +28,12 @@ export class DepthBuffer {
   /** Forget everything: every pixel is "infinitely far away" again. */
   clear(): void {
     this.data.fill(Infinity)
+  }
+
+  /** Is depth z nearer than what is stored at (x, y)? Only looks, never writes. */
+  isNearer(x: number, y: number, z: number): boolean {
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) return false
+    return z < this.data[y * this.width + x]
   }
 
   /**
@@ -94,4 +101,33 @@ export function fillTriangle(
       if (depth.testAndSet(x, y, z)) fb.setPixel(x, y, r, g, b, a)
     }
   }
+}
+
+/**
+ * Fill a see-through triangle: same coverage test as fillTriangle, but each pixel is
+ * BLENDED over what is already there (blendPixel). The depth buffer is only READ
+ * (pixels behind something solid are skipped) and never written, so transparent
+ * triangles do not hide each other. Returns how many pixels were blended.
+ */
+export function fillTriangleBlended(
+  fb: Framebuffer, depth: DepthBuffer, p0: ScreenPoint, p1: ScreenPoint, p2: ScreenPoint, color: Rgba,
+): number {
+  const minX = Math.max(0, Math.floor(Math.min(p0[0], p1[0], p2[0])))
+  const maxX = Math.min(fb.width - 1, Math.ceil(Math.max(p0[0], p1[0], p2[0])))
+  const minY = Math.max(0, Math.floor(Math.min(p0[1], p1[1], p2[1])))
+  const maxY = Math.min(fb.height - 1, Math.ceil(Math.max(p0[1], p1[1], p2[1])))
+  let blended = 0
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const w = barycentric(p0, p1, p2, x + 0.5, y + 0.5)
+      if (w === null) return blended
+      if (w[0] < 0 || w[1] < 0 || w[2] < 0) continue
+      const z = w[0] * p0[2] + w[1] * p1[2] + w[2] * p2[2]
+      if (depth.isNearer(x, y, z)) {
+        fb.blendPixel(x, y, color)
+        blended++
+      }
+    }
+  }
+  return blended
 }
