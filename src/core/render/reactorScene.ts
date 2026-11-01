@@ -5,14 +5,13 @@
 import { identity, multiply, rotateY, rotateAxis, scale, translate, type Mat4 } from '../math/mat4'
 import { cross, dot, length, normalize, sub, type Vec3 } from '../math/vec3'
 import type { Lighting, Material } from './lighting'
-import { createCube } from './mesh'
-import { createCylinder, createGround, createUVSphere } from './meshes'
+import { kindOf, meshFor, type MeshKind } from './sceneMeshes'
 import type { LineSegment, SceneObject } from './scene'
 
 // One of each basic shape; every part reuses them with its own size and place.
-const BOX = createCube() // 1 x 1 x 1
-const CYLINDER = createCylinder(1, 1, 28) // radius 1, height 1, along y
-const SPHERE = createUVSphere(20, 12) // radius 0.5
+const BOX = meshFor('cube') // 1 x 1 x 1
+const CYLINDER = meshFor('cylinder') // radius 1, height 1, along y
+const SPHERE = meshFor('sphere') // diameter 1
 
 // ----- materials -----
 const dark = (v: number): Material => ({ color: [v, v * 1.05, v * 1.2] })
@@ -26,8 +25,11 @@ const RED = glow(1.1, 0.12, 0.08)
 const CYAN = glow(0.2, 1.5, 1.7)
 const ORB = glow(2.2, 1.7, 0.8)
 
+// A part of the scene: what to draw, plus its name, the folder it sits in, and which basic shape it is.
+export type NamedSceneObject = SceneObject & { name: string; group: string; kind: MeshKind }
+
 export type ReactorScene = {
-  objects: SceneObject[]
+  objects: NamedSceneObject[]
   lighting: Lighting
   gridLines: LineSegment[]
   fog: { color: readonly [number, number, number]; density: number }
@@ -56,8 +58,19 @@ function beam(a: Vec3, b: Vec3, width: number, height: number): Mat4 {
 }
 
 export function createReactorScene(): ReactorScene {
-  const objects: SceneObject[] = []
-  const add = (mesh: SceneObject['mesh'], m: Mat4, material: Material) => objects.push({ mesh, model: m, material })
+  const objects: NamedSceneObject[] = []
+  // tag() says which folder and base name the next parts get. Names are numbered: "Wall panel 1", "Wall panel 2", ...
+  let currentGroup = ''
+  let currentBase = ''
+  const counts: Record<string, number> = {}
+  const tag = (group: string, base: string) => {
+    currentGroup = group
+    currentBase = base
+  }
+  const add = (mesh: SceneObject['mesh'], m: Mat4, material: Material) => {
+    counts[currentBase] = (counts[currentBase] ?? 0) + 1
+    objects.push({ mesh, model: m, material, name: `${currentBase} ${counts[currentBase]}`, group: currentGroup, kind: kindOf(mesh) ?? 'cube' })
+  }
   const box = (c: Vec3, size: Vec3, material: Material, turnY = 0) => add(BOX, model(translate(...c), rotateY(turnY), scale(...size)), material)
   const cylinder = (c: Vec3, radius: number, height: number, material: Material) => add(CYLINDER, model(translate(...c), scale(radius, height, radius)), material)
   const ball = (c: Vec3, radius: number, material: Material) => add(SPHERE, model(translate(...c), scale(radius * 2, radius * 2, radius * 2)), material)
@@ -65,7 +78,8 @@ export function createReactorScene(): ReactorScene {
   const hall: Vec3 = [0, 0, -6] // the middle of the room
 
   // ===== floor =====
-  add(createGround(44, 22), translate(hall[0], 0, hall[2]), dark(0.03))
+  tag('Floor', 'Floor')
+  add(meshFor('ground'), translate(hall[0], 0, hall[2]), dark(0.03))
 
   // ===== walls: a ring of panels with glowing strips =====
   const panels = 18
@@ -73,56 +87,77 @@ export function createReactorScene(): ReactorScene {
     const angle = (2 * Math.PI * k) / panels
     const radius = 17
     const at = (r: number, y: number): Vec3 => [hall[0] + r * Math.sin(angle), y, hall[2] + r * Math.cos(angle)]
+    tag('Walls', 'Wall panel')
     add(BOX, model(translate(...at(radius, 6.5)), rotateY(angle), scale(6.7, 13, 1)), k % 3 === 0 ? { color: [0.2, 0.11, 0.09] } : { color: [0.12, 0.07, 0.07] })
+    tag('Walls', 'Wall strip')
     add(BOX, model(translate(...at(radius - 0.55, 2.3)), rotateY(angle), scale(5.4, 0.2, 0.12)), k % 2 === 0 ? ORANGE : RED)
     add(BOX, model(translate(...at(radius - 0.55, 8.6)), rotateY(angle), scale(5.4, 0.16, 0.12)), ORANGE)
+    tag('Walls', 'Wall light')
     if (k % 3 === 1) add(BOX, model(translate(...at(radius - 0.55, 5.4)), rotateY(angle), scale(0.5, 2.6, 0.12)), RED)
   }
 
   // ===== the reactor: base, column, glowing orb, and the arms that hold it =====
-  cylinder([hall[0], 0.2, hall[2]], 3.4, 0.4, METAL_DARK) // base disc
-  cylinder([hall[0], 0.36, hall[2]], 3.5, 0.08, ORANGE) // glowing rim
-  cylinder([hall[0], 0.42, hall[2]], 2.3, 0.04, glow(0.5, 0.2, 0.05)) // inner glow
-  cylinder([hall[0], 1.3, hall[2]], 0.5, 1.8, METAL) // column
+  tag('Reactor', 'Base disc')
+  cylinder([hall[0], 0.2, hall[2]], 3.4, 0.4, METAL_DARK)
+  tag('Reactor', 'Glowing rim')
+  cylinder([hall[0], 0.36, hall[2]], 3.5, 0.08, ORANGE)
+  tag('Reactor', 'Inner glow')
+  cylinder([hall[0], 0.42, hall[2]], 2.3, 0.04, glow(0.5, 0.2, 0.05))
+  tag('Reactor', 'Column')
+  cylinder([hall[0], 1.3, hall[2]], 0.5, 1.8, METAL)
+  tag('Reactor', 'Collar')
   cylinder([hall[0], 0.8, hall[2]], 0.7, 0.25, METAL_DARK)
   cylinder([hall[0], 1.9, hall[2]], 0.65, 0.2, METAL_DARK)
   const orb: Vec3 = [hall[0], 2.9, hall[2]]
+  tag('Reactor', 'Orb')
   ball(orb, 0.7, ORB)
 
   // lower arms rising from the base to the orb, in four directions
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     const from: Vec3 = [hall[0] + dx * 3.1, 0.5, hall[2] + dz * 3.1]
     const to: Vec3 = [hall[0] + dx * 0.7, 2.5, hall[2] + dz * 0.7]
+    tag('Reactor', 'Lower arm')
     add(BOX, beam(from, to, 0.9, 0.9), METAL)
+    tag('Reactor', 'Lower joint')
     ball(from, 0.55, METAL_DARK)
     const stripA: Vec3 = [(from[0] * 2 + to[0]) / 3, (from[1] * 2 + to[1]) / 3 + 0.5, (from[2] * 2 + to[2]) / 3]
     const stripB: Vec3 = [(from[0] + to[0] * 2) / 3, (from[1] + to[1] * 2) / 3 + 0.5, (from[2] + to[2] * 2) / 3]
+    tag('Reactor', 'Lower arm light')
     add(BOX, beam(stripA, stripB, 0.18, 0.12), ORANGE)
   }
 
   // the big upper arms from the ceiling hub down to the orb
   const hub: Vec3 = [hall[0], 12.5, hall[2]]
+  tag('Arms', 'Ceiling hub')
   box(hub, [7, 1.8, 7], METAL_DARK)
   for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
     const top: Vec3 = [hall[0] + sx * 5.2, 11.4, hall[2] + sz * 2.6]
     const mid: Vec3 = [hall[0] + sx * 3.1, 7.8, hall[2] + sz * 1.3]
     const bottom: Vec3 = [hall[0] + sx * 0.9, 3.9, hall[2] + sz * 0.35]
+    tag('Arms', 'Upper arm')
     add(BOX, beam(top, mid, 2, 1.7), METAL_DARK)
+    tag('Arms', 'Forearm')
     add(BOX, beam(mid, bottom, 1.4, 1.2), METAL)
+    tag('Arms', 'Elbow')
     ball(mid, 1.0, METAL_DARK)
     const stripTop: Vec3 = [top[0] + sx * -0.1, top[1] - 0.6, top[2]]
+    tag('Arms', 'Arm light')
     add(BOX, beam(stripTop, [mid[0], mid[1] + 0.4, mid[2]], 0.2, 0.14), ORANGE)
     add(BOX, beam([mid[0], mid[1] - 0.2, mid[2]], [bottom[0], bottom[1] + 0.3, bottom[2]], 0.16, 0.12), RED)
+    tag('Arms', 'Arm tip')
     ball(bottom, 0.5, METAL)
   }
 
   // ===== towers with glowing rings and a spiral stair =====
   const tower = (x: number, z: number, height: number, ringMaterial: Material, railMaterial: Material) => {
+    tag('Towers', 'Tower body')
     cylinder([x, height / 2, z], 1.4, height, TEAL)
+    tag('Towers', 'Tower ring')
     for (const y of [height * 0.25, height * 0.5, height * 0.75]) {
       cylinder([x, y, z], 1.48, 0.36, ringMaterial)
       cylinder([x, y + 0.7, z], 1.48, 0.2, ringMaterial)
     }
+    tag('Towers', 'Tower base')
     cylinder([x, 0.3, z], 1.9, 0.6, METAL_DARK)
     const stepCount = Math.floor(height * 2.3)
     for (let k = 0; k < stepCount; k++) {
@@ -131,10 +166,12 @@ export function createReactorScene(): ReactorScene {
       const y = 0.5 + k * 0.4
       const px = x + radius * Math.cos(angle)
       const pz = z + radius * Math.sin(angle)
+      tag('Towers', 'Stair step')
       add(BOX, model(translate(px, y, pz), rotateY(-angle), scale(1.6, 0.1, 0.6)), METAL)
       if (k % 2 === 0) {
         const rx = x + (radius + 0.85) * Math.cos(angle)
         const rz = z + (radius + 0.85) * Math.sin(angle)
+        tag('Towers', 'Stair post')
         add(BOX, model(translate(rx, y + 0.45, rz), scale(0.06, 0.9, 0.06)), railMaterial)
       }
     }
@@ -149,6 +186,7 @@ export function createReactorScene(): ReactorScene {
   const rbox = (c: Vec3, size: Vec3, material: Material) => part(BOX, model(translate(...c), scale(...size)), material)
   const rball = (c: Vec3, radius: number, material: Material) => part(SPHERE, model(translate(...c), scale(radius * 2, radius * 2, radius * 2)), material)
   const rlimb = (a: Vec3, b: Vec3, w: number, material: Material) => part(BOX, beam(a, b, w, w), material)
+  tag('Robot', 'Robot part')
   for (const side of [1, -1]) {
     rbox([0.12, 0.09, side * 0.3], [0.62, 0.18, 0.34], METAL_DARK) // foot
     rlimb([0, 0.25, side * 0.3], [0.06, 0.85, side * 0.3], 0.24, WHITE) // lower leg

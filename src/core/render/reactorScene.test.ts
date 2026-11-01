@@ -23,6 +23,19 @@ describe('createReactorScene', () => {
       expect(l.range).toBeGreaterThan(0)
     }
   })
+  it('every part has a name, a group and a mesh kind, and the names are unique', () => {
+    const kinds = ['cube', 'sphere', 'cylinder', 'plane', 'ground']
+    for (const o of scene.objects) {
+      expect(o.name.length).toBeGreaterThan(0)
+      expect(o.group.length).toBeGreaterThan(0)
+      expect(kinds).toContain(o.kind)
+    }
+    expect(new Set(scene.objects.map((o) => o.name)).size).toBe(scene.objects.length)
+  })
+  it('the parts fall into the expected groups', () => {
+    const groups = new Set(scene.objects.map((o) => o.group))
+    for (const g of ['Floor', 'Walls', 'Reactor', 'Arms', 'Towers', 'Robot']) expect(groups.has(g)).toBe(true)
+  })
   it('is the same every time it is built', () => {
     expect(createReactorScene().objects.length).toBe(scene.objects.length)
   })

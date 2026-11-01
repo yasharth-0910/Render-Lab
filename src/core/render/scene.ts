@@ -8,7 +8,7 @@ import { projectionMatrix, projectToScreen, viewMatrix, type Camera } from './ca
 import { isBackFacingView } from './culling'
 import { fillTriangle, type DepthBuffer } from './fill'
 import type { Framebuffer } from './framebuffer'
-import { bresenhamSteps } from './line'
+import { bresenhamSteps, drawLine } from './line'
 import { fogMix, lightAt, type Lighting, type Material, type Rgb } from './lighting'
 import type { Mesh } from './mesh'
 
@@ -18,20 +18,24 @@ export type SceneOptions = {
   lighting: Lighting
   fog?: { color: Rgb; density: number } // colour 0..1
   cullBackFaces?: boolean // default true
+  style?: 'filled' | 'wireframe' // default filled
 }
 
 /**
  * Draw every object. Each triangle is lit once (flat shading): its colour comes from its normal and
  * its centre, then fog, then fillTriangle with the depth test.
  * Triangles with a corner behind the camera are skipped (there is no clipping).
+ * Returns how many triangles there were, how many were drawn, and how many were culled (back facing).
+ * triangles - drawn - culled = the ones skipped because a corner was behind the camera.
  */
 export function renderShaded(
   fb: Framebuffer, depth: DepthBuffer, objects: SceneObject[], camera: Camera, options: SceneOptions,
-): { triangles: number; drawn: number } {
+): { triangles: number; drawn: number; culled: number } {
   const fogColor = options.fog ? options.fog.color.map((c) => c * 255) : null
   const cull = options.cullBackFaces !== false
   let triangles = 0
   let drawn = 0
+  let culled = 0
 
   for (const obj of objects) {
     const world = obj.mesh.vertices.map((v) => transformPoint(obj.model, v))
@@ -41,7 +45,10 @@ export function renderShaded(
       const a = world[i]
       const b = world[j]
       const c = world[k]
-      if (cull && isBackFacingView(a, b, c, camera.eye)) continue
+      if (cull && isBackFacingView(a, b, c, camera.eye)) {
+        culled++
+        continue
+      }
       const p0 = screen[i]
       const p1 = screen[j]
       const p2 = screen[k]
@@ -52,11 +59,22 @@ export function renderShaded(
       const centre: Vec3 = [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3]
       let colour: readonly number[] = lightAt(obj.material, centre, normal, options.lighting)
       if (fogColor && options.fog) colour = fogMix(colour, length(sub(centre, camera.eye)), fogColor, options.fog.density)
-      fillTriangle(fb, depth, p0, p1, p2, [colour[0], colour[1], colour[2], 255])
+      if (options.style === 'wireframe') {
+        // Only the three edges, with Bresenham. Very dark colours are brightened so the lines can be seen.
+        const brightest = Math.max(colour[0], colour[1], colour[2])
+        const lift = brightest > 0 && brightest < 110 ? 110 / brightest : 1
+        const line: [number, number, number, number] = [colour[0] * lift, colour[1] * lift, colour[2] * lift, 255]
+        const r = Math.round
+        drawLine(fb, r(p0[0]), r(p0[1]), r(p1[0]), r(p1[1]), line)
+        drawLine(fb, r(p1[0]), r(p1[1]), r(p2[0]), r(p2[1]), line)
+        drawLine(fb, r(p2[0]), r(p2[1]), r(p0[0]), r(p0[1]), line)
+      } else {
+        fillTriangle(fb, depth, p0, p1, p2, [colour[0], colour[1], colour[2], 255])
+      }
       drawn++
     }
   }
-  return { triangles, drawn }
+  return { triangles, drawn, culled }
 }
 
 /** The distance in front of the camera that an NDC depth value z stands for (inverse of the projection's depth). */

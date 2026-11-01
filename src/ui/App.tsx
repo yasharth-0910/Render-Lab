@@ -5,6 +5,7 @@ import CullingLab from './CullingLab'
 import QuaternionLab from './QuaternionLab'
 import RasterCanvas from './RasterCanvas'
 import ReactorScene from './ReactorScene'
+import SceneTree from './shell/SceneTree'
 import Shell from './shell/Shell'
 import type { LabEntry } from './shell/Sidebar'
 import SimplifyLab from './SimplifyLab'
@@ -50,11 +51,17 @@ const LABS: (LabEntry & { component: ComponentType })[] = [
   },
   {
     id: 'reactor', name: 'Reactor Scene', icon: 'scene', dim: '3D', component: ReactorScene,
-    topic: 'Lighting, depth buffer, bloom',
-    blurb: 'A whole sci-fi hall drawn by our own rasterizer: lit triangles, a depth buffer, a neon grid, fog and a bloom glow. Orbit it, then save or copy the picture to share.',
+    topic: 'Scene editor: picking, culling, depth buffer, bloom',
+    blurb: 'The demo scene, and a small scene editor around it. Click an object (in the picture or in the tree) to select it, move, turn, resize and recolour it, add or delete objects, and switch back-face culling and wireframe to see what they do to the triangle counts.',
   },
 ]
 
 export default function App() {
-  return <Shell labs={LABS} renderLab={(lab) => { const Lab = LABS.find((l) => l.id === lab.id)!.component; return <Lab /> }} />
+  return (
+    <Shell
+      labs={LABS}
+      renderLab={(lab) => { const Lab = LABS.find((l) => l.id === lab.id)!.component; return <Lab /> }}
+      trees={{ reactor: <SceneTree /> }}
+    />
+  )
 }

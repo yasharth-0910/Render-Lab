@@ -30,7 +30,7 @@ describe('renderShaded', () => {
     expect(rr).toBeGreaterThan(100)
     expect(g).toBe(0)
     expect(b).toBe(0)
-    expect(r).toEqual({ triangles: 1, drawn: 1 })
+    expect(r).toEqual({ triangles: 1, drawn: 1, culled: 0 })
   })
   it('the nearer triangle wins, whatever the draw order', () => {
     for (const nearFirst of [true, false]) {
@@ -47,6 +47,28 @@ describe('renderShaded', () => {
     expect(renderShaded(a.fb, a.depth, [{ mesh: away, model: identity(), material: red }], cam, opts).drawn).toBe(0)
     const b = fresh()
     expect(renderShaded(b.fb, b.depth, [{ mesh: away, model: identity(), material: red }], cam, { ...opts, cullBackFaces: false }).drawn).toBe(1)
+  })
+  it('counts the culled triangles: total = drawn + culled + skipped', () => {
+    const { fb, depth } = fresh()
+    const r = renderShaded(fb, depth, [
+      { mesh: tri, model: identity(), material: red }, // faces us: drawn
+      { mesh: away, model: identity(), material: red }, // faces away: culled
+      { mesh: away, model: translate(0, 0, 5), material: red }, // behind the camera but turned towards it: skipped
+    ], cam, opts)
+    expect(r).toEqual({ triangles: 3, drawn: 1, culled: 1 })
+  })
+  it('wireframe style draws only the edges: the inside of the triangle stays empty', () => {
+    const { fb, depth } = fresh()
+    renderShaded(fb, depth, [{ mesh: tri, model: identity(), material: red }], cam, { ...opts, style: 'wireframe' })
+    expect(fb.getPixel(20, 22)).toEqual([0, 0, 0, 255]) // the middle is not filled
+    let lit = 0
+    for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) if (fb.getPixel(x, y)[0] > 0) lit++
+    expect(lit).toBeGreaterThan(20) // but the edges are there
+  })
+  it('wireframe also skips back-facing triangles when culling is on', () => {
+    const { fb, depth } = fresh()
+    const r = renderShaded(fb, depth, [{ mesh: away, model: identity(), material: red }], cam, { ...opts, style: 'wireframe' })
+    expect(r.culled).toBe(1)
   })
   it('fog pulls far colours towards the fog colour', () => {
     const plain = fresh()

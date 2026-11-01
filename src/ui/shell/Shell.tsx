@@ -21,11 +21,12 @@ import TopBar, { type Workspace } from './TopBar'
 type Props = {
   labs: LabEntry[]
   renderLab: (lab: LabEntry) => ReactNode // makes the open lab's component
+  trees?: Record<string, ReactNode> // extra tree shown under a lab in the Scene dock while it is open
 }
 
 type LeftMode = 'open' | 'icons' | 'hidden'
 
-export default function Shell({ labs, renderLab }: Props) {
+export default function Shell({ labs, renderLab, trees }: Props) {
   const [viewportEl, setViewportEl] = useState<HTMLElement | null>(null)
   const [inspectorEl, setInspectorEl] = useState<HTMLElement | null>(null)
   const [ready, setReady] = useState(false) // true once both places exist; the lab then stays mounted
@@ -122,6 +123,7 @@ export default function Shell({ labs, renderLab }: Props) {
             onToggleIcons={() => setLeftMode(leftMode === 'icons' ? 'open' : 'icons')}
             filter={filter}
             onFilter={setFilter}
+            trees={trees}
           />
           {leftMode === 'open' && <AboutDock lab={active} />}
         </div>

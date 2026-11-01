@@ -1,6 +1,7 @@
 // Sidebar.tsx - the "Scene" dock: a tree of the labs with a filter box, like Godot's scene tree.
 // The header chevron shrinks it to icons only.
 
+import type { ReactNode } from 'react'
 import { Icon } from './icons'
 
 export type LabEntry = {
@@ -20,9 +21,10 @@ type Props = {
   onToggleIcons: () => void
   filter: string
   onFilter: (text: string) => void
+  trees?: Record<string, ReactNode> // extra content shown under a lab while it is open (the reactor scene tree)
 }
 
-export default function Sidebar({ labs, activeId, onSelect, iconsOnly, onToggleIcons, filter, onFilter }: Props) {
+export default function Sidebar({ labs, activeId, onSelect, iconsOnly, onToggleIcons, filter, onFilter, trees }: Props) {
   return (
     <section className="dock scene-dock" aria-label="Labs">
       <div className="dock-tabs">
@@ -48,6 +50,7 @@ export default function Sidebar({ labs, activeId, onSelect, iconsOnly, onToggleI
               {!iconsOnly && <span>{lab.name}</span>}
               {!iconsOnly && <span className="tag">{lab.dim === 'both' ? '2D·3D' : lab.dim}</span>}
             </button>
+            {!iconsOnly && lab.id === activeId && trees?.[lab.id]}
           </li>
         ))}
         {labs.length === 0 && !iconsOnly && <li className="tree-empty">No lab matches.</li>}
