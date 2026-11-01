@@ -3,6 +3,7 @@ import AlphaLab from './AlphaLab'
 import BresenhamLab from './BresenhamLab'
 import CullingLab from './CullingLab'
 import RasterCanvas from './RasterCanvas'
+import SimplifyLab from './SimplifyLab'
 
 // One entry per tab. Later labs are added here.
 const TABS = [
@@ -10,6 +11,7 @@ const TABS = [
   { name: 'Bresenham Lab', component: BresenhamLab },
   { name: 'Culling Lab', component: CullingLab },
   { name: 'Alpha Lab', component: AlphaLab },
+  { name: 'Simplify Lab', component: SimplifyLab },
 ]
 
 export default function App() {
