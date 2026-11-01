@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import BresenhamLab from './BresenhamLab'
+import CullingLab from './CullingLab'
 import RasterCanvas from './RasterCanvas'
 
 // One entry per tab. Later labs are added here.
 const TABS = [
   { name: 'Rotating Cube', component: RasterCanvas },
   { name: 'Bresenham Lab', component: BresenhamLab },
+  { name: 'Culling Lab', component: CullingLab },
 ]
 
 export default function App() {

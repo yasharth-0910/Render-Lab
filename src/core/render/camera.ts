@@ -29,7 +29,8 @@ export function projectionMatrix(cam: Camera): Mat4 {
 }
 
 /**
- * Take a model-space point all the way to pixel coordinates [x, y].
+ * Take a model-space point all the way to pixel coordinates [x, y, z].
+ * z is the depth in NDC (-1 = near plane, +1 = far plane); smaller means closer.
  * Returns null if the point is behind the camera (or closer than the near plane),
  * because dividing by w there would flip it upside down and give nonsense.
  */
@@ -39,7 +40,7 @@ export function projectToScreen(
   cam: Camera,
   screenWidth: number,
   screenHeight: number,
-): [number, number] | null {
+): [number, number, number] | null {
   const world = transformPoint(model, point)
   const inCamera = transformPoint(viewMatrix(cam), world)
   // The camera looks down -z, so visible points have NEGATIVE z.
@@ -53,5 +54,5 @@ export function projectToScreen(
   // while NDC y grows upward.
   const px = ((ndc[0] + 1) / 2) * screenWidth
   const py = ((1 - ndc[1]) / 2) * screenHeight
-  return [px, py]
+  return [px, py, ndc[2]]
 }
